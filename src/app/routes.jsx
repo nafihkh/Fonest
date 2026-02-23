@@ -17,14 +17,16 @@ const router = createBrowserRouter([
         path: "/admin",
         element: (
           
-            <AdminDashboard />
+            <ProtectedRoute >
+              <AdminDashboard />
+            </ProtectedRoute>
           
         ),
       },
       {
-        path: "/",
+        path: "/home",
         element: (
-          <ProtectedRoute>
+          <ProtectedRoute role="customer">
             <Home />
           </ProtectedRoute>
         ),

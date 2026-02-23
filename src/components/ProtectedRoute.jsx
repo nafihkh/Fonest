@@ -1,17 +1,15 @@
 import { Navigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 
 export default function ProtectedRoute({ children, role }) {
-  const token = localStorage.getItem("accessToken");
-  const user = JSON.parse(localStorage.getItem("user")); // store user info after login
+  const { accessToken, user, bootstrapped } = useSelector((s) => s.auth);
 
-  if (!token) {
-    return <Navigate to="/auth" replace />;
-  }
+  // optional: prevent redirect flicker while refresh check runs
+  if (!bootstrapped) return null;
 
-  // If route requires specific role
-  if (role && user?.role !== role) {
-    return <Navigate to="/" replace />;
-  }
+  if (!accessToken) return <Navigate to="/auth" replace />;
+  console.log(user)
+  if (role && user?.role !== role) return <Navigate to="/home" replace />;
 
   return children;
 }

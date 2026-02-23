@@ -1,5 +1,5 @@
-import { NavLink } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
+import { api } from "../../services/api";
 import {
   LayoutDashboard,
   Users,
@@ -30,13 +30,17 @@ const nav = [
 export default function Sidebar() {
   
   const navigate = useNavigate();
-  const handleSignOut = () => {
-  localStorage.removeItem("accessToken");
-  localStorage.removeItem("user");
-  // optional: call backend logout to clear refresh cookie
-  // await api.post("/auth/logout", {}, { withCredentials: true });
-  navigate("/auth", { replace: true });
-};
+  const handleSignOut = async () => {
+    try {
+      await api.post("/auth/logout"); // clears httpOnly refresh cookie
+    } catch (e) {
+      // ignore logout errors
+    } finally {
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("user");
+      navigate("/auth", { replace: true });
+    }
+  };
   return (
     <aside className="w-[270px] shrink-0 border-r border-slate-200/70 bg-white min-h-screen flex flex-col">
       <div className="h-[68px] px-5 flex items-center gap-2 border-b border-slate-200/70">
@@ -107,7 +111,7 @@ export default function Sidebar() {
               </span>
               <span>Sign Out</span>
             </div>
-            <span className="text-slate-600"><MoveUpRight size={18}/></span>
+            <MoveUpRight size={18} className="text-slate-500" />
           </button>
         </div>
     </aside>

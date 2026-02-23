@@ -4,17 +4,20 @@ import { api } from "../../services/api";
 import { GoogleLogin } from "@react-oauth/google";
 import { useGoogleLogin } from "@react-oauth/google";
 import { AnimatePresence, motion } from "framer-motion";
+import { useDispatch } from "react-redux";
+import { setCredentials } from "../../store/authSlice";
 
 
 export default function AuthPage() {
   const navigate = useNavigate();
-
+  const dispatch = useDispatch();
   const [step, setStep] = useState(1);
   const [contact, setContact] = useState("");
   const [otp, setOtp] = useState("");
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [isNewUser, setIsNewUser] = useState(false)
 
   const handleSendOtp = async () => {
     setLoading(true);
@@ -22,6 +25,7 @@ export default function AuthPage() {
 
     try {
       const res = await api.post("/auth/otp/send", { contact });
+      setIsNewUser(res.data.isNewUser);
       console.log("OTP Response:", res.data);
       setStep(2);
     } catch (err) {
@@ -31,6 +35,13 @@ export default function AuthPage() {
       setLoading(false);
     }
   };
+  const goAfterLogin = ({ isNewUser, user }) => {
+  if (isNewUser) return navigate("/complete-profile", { replace: true });
+
+  if (user?.role === "admin") return navigate("/admin", { replace: true });
+
+  return navigate("/home", { replace: true });
+};
 
   const handleVerifyOtp = async () => {
     setLoading(true);
@@ -40,16 +51,15 @@ export default function AuthPage() {
       const res = await api.post("/auth/otp/verify", {
         contact,
         otp,
-        name
+        ...(isNewUser ? { name } : {}),
       });
 
-      localStorage.setItem("accessToken", res.data.accessToken);
+      dispatch(setCredentials({
+        accessToken: res.data.accessToken,
+        user: res.data.user,
+      }))
 
-      if (res.data.isNewUser) {
-        navigate("/complete-profile");
-      } else {
-        navigate("/");
-      }
+      goAfterLogin({ isNewUser: res.data.isNewUser, user: res.data.user });
 
     } catch (err) {
       setError(err.response?.data?.message || "OTP verification failed");
@@ -64,10 +74,13 @@ export default function AuthPage() {
         access_token: tokenResponse.access_token,
       });
 
-      localStorage.setItem("accessToken", res.data.accessToken);
+      dispatch(setCredentials({
+        accessToken: res.data.accessToken,
+        user: res.data.user,
+      }))
 
-      if (res.data.isNewUser) navigate("/complete-profile");
-      else navigate("/");
+     goAfterLogin({ isNewUser: res.data.isNewUser, user: res.data.user });
+     
     } catch (err) {
       setError("Google login failed");
     }
@@ -204,7 +217,11 @@ export default function AuthPage() {
                       Don’t have an account?{" "}
                       <button
                         type="button"
-                        onClick={() => setStep(1)}
+                        onClick={() =>{
+                          setStep(1);
+                          setOtp("");
+                          setName("");
+                        }}
                         className="font-semibold text-[#1C1D21] hover:underline"
                       >
                         Sign Up
@@ -235,6 +252,7 @@ export default function AuthPage() {
                       <label className="sr-only" htmlFor="name">
                         Name
                       </label>
+                      {isNewUser && (
                       <input
                         id="name"
                         type="text"
@@ -243,6 +261,7 @@ export default function AuthPage() {
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                       />
+                      )}
                     </div>
 
                     <div className="mt-3">

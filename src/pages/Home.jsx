@@ -1,5 +1,4 @@
 import HeroCarousel from "../components/home/HeroCarousel"
-import SiteHeader from "../components/layout/SiteHeader";
 import SiteFooter from "../components/layout/SiteFooter";
 
 import HomeCategories from "../components/home/HomeCategories";
