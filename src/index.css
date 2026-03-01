@@ -1,12 +1,20 @@
 @import "tailwindcss";
 
+/* Enable class-based dark mode */
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* Font Face */
 @font-face {
   font-family: "BalooCustom";
   src: url("./assets/fonts/Baloo-Regular.ttf") format("truetype");
 }
+@font-face {
+  font-family: "Archivo";
+  src: url("./assets/fonts/Archivo-Regular.ttf") format("truetype");
+}
 
-/* Tailwind v4 theme extension */
+/* Theme Extension */
 @theme {
   --font-baloo: "BalooCustom", cursive;
+  --font-archivo: "Archivo", sans-serif;
 }

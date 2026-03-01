@@ -1,9 +1,10 @@
 import AdminLayout from "../../components/admin/AdminLayout";
+import { ArrowUpRight } from 'lucide';
 
 function StatCard({ title, value, badge, badgeType = "up" }) {
   const badgeStyles =
     badgeType === "up"
-      ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+      ? "bg-[#10B9811A] text-[#059669FF]"
       : badgeType === "down"
       ? "bg-rose-50 text-rose-700 border-rose-200"
       : "bg-amber-50 text-amber-700 border-amber-200";
@@ -23,7 +24,7 @@ function StatCard({ title, value, badge, badgeType = "up" }) {
         <div className="flex flex-col items-end gap-2">
           <span
             className={[
-              "text-[11px] font-bold px-2 py-1 rounded-full border",
+              "text-[11px] font-medium px-2 py-1 rounded-full",
               badgeStyles,
             ].join(" ")}
           >
@@ -224,26 +225,20 @@ export default function AdminDashboard() {
     <AdminLayout>
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-[30px] font-extrabold text-slate-900">
+          <h1 className="text-[30px] font-extrabold font-archivo text-slate-900">
             Welcome back, Admin
           </h1>
-          <p className="text-[13px] text-slate-500 mt-1">
+          <p className="text-[16px] text-slate-500 mt-1">
             Here’s a snapshot of your store’s performance today.
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 text-amber-800 px-3 py-2 rounded-2xl text-[12px] font-semibold">
-            ⚠️ Low Stock Warning
-            <span className="text-amber-700/80 font-medium">
-              iPhone 14 - Matte Black is below 5 units.
-            </span>
-          </div>
-
-          <button className="px-4 py-2 rounded-xl border border-slate-200/70 bg-white hover:bg-slate-50 text-[13px] font-semibold">
+        <div className="flex items-end gap-3">
+          <button className="px-4 py-2 rounded-full border border-slate-200/70 bg-white hover:bg-slate-50 text-[14px] font-semibold">
             Download Report
           </button>
-          <button className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-[13px] font-semibold">
+          <button className="px-4 py-2 flex items-center justify-center font-medium text-sm leading-[22px] text-white
+         bg-[#636AE8] rounded-2xl border-0 shadow-[0px_0px_2px_#636AE833,0px_4px_9px_#636AE833]hover:bg-[#636AE8] active:bg-[#636AE8] disabled:opacity-40">
             Manage Inventory
           </button>
         </div>

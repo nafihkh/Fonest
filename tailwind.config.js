@@ -1,10 +1,12 @@
 export default {
-  darkMode: "class",
+  content: ["./index.html", "./src/**/*.{js,jsx,ts,tsx}"],
   theme: {
     extend: {
       fontFamily: {
         baloo: ["BalooCustom", "cursive"],
+        archivo: ["Archivo", "sans-serif"],
       },
     },
   },
+  plugins: [],
 };
