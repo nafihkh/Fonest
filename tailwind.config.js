@@ -5,6 +5,7 @@ export default {
       fontFamily: {
         baloo: ["BalooCustom", "cursive"],
         archivo: ["Archivo", "sans-serif"],
+        inter: ["Inter", "sans-serif"],
       },
     },
   },

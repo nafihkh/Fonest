@@ -155,7 +155,7 @@ export default function HeroCarousel() {
               <motion.h1
                 key={slide.id + "-big"}
                 {...bigText}
-                className="text-center select-none text-white font-extrabold tracking-tight
+                className="text-center select-none text-white font-extrabold font-sans tracking-tight
                            text-[72px] sm:text-[96px] md:text-[130px] lg:text-[160px]
                            leading-[0.9]"
                 style={{ letterSpacing: "-0.04em" }}

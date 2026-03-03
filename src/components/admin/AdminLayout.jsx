@@ -4,7 +4,7 @@ import Footer from "./Footer";
 
 export default function AdminLayout({ children }) {
   return (
-    <div className="min-h-screen bg-[#F6F8FF] text-slate-900">
+    <div className="min-h-screen bg-[#F6F8FF] dark:bg-slate-950 text-slate-900">
       <div className="flex">
         <Sidebar />
         <div className="flex-1 min-w-0">

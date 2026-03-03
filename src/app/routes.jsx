@@ -6,6 +6,8 @@ import CompleteProfile from "../pages/auth/CompleteProfile";
 import Home from "../pages/Home";
 import AdminDashboard from "../pages/admin/AdminDashboard";
 import ProtectedRoute from "../components/ProtectedRoute";
+import AddProduct from "../pages/admin/AddProduct";
+import AddBrandCategory from "../pages/admin/AddBrandCategory";
 
 const router = createBrowserRouter([
   {
@@ -19,6 +21,26 @@ const router = createBrowserRouter([
           
             <ProtectedRoute >
               <AdminDashboard />
+            </ProtectedRoute>
+          
+        ),
+      },
+      {
+        path: "/admin/addproduct",
+        element: (
+          
+            <ProtectedRoute >
+              <AddProduct />
+            </ProtectedRoute>
+          
+        ),
+      },
+      {
+        path: "/admin/brand&catogary",
+        element: (
+          
+            <ProtectedRoute >
+              <AddBrandCategory />
             </ProtectedRoute>
           
         ),

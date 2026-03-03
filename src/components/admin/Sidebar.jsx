@@ -19,7 +19,7 @@ const nav = [
   { label: "Dashboard", to: "/admin", icon: LayoutDashboard },
   { label: "Users", to: "/admin/users", icon: Users },
   { label: "Products", to: "/admin/products", icon: Package },
-  { label: "Add Product", to: "/admin/products/new", icon: PlusCircle },
+  { label: "Add Product", to: "/admin/addproduct", icon: PlusCircle },
   { label: "Stock Ops", to: "/admin/stock", icon: Boxes },
   { label: "Returns", to: "/admin/returns", icon: RotateCcw },
   { label: "Profit Analysis", to: "/admin/profit", icon: TrendingUp },
@@ -71,6 +71,7 @@ export default function Sidebar() {
               <NavLink
                 key={item.to}
                 to={item.to}
+                end={item.to === "/admin"}
                 className={({ isActive }) =>
                   [
                     "flex items-center justify-between px-3 py-2.5 rounded-xl text-[14px] font-medium transition-all",

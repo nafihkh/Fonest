@@ -12,9 +12,14 @@
   font-family: "Archivo";
   src: url("./assets/fonts/Archivo-Regular.ttf") format("truetype");
 }
+@font-face {
+  font-family: "Inter";
+  src: url("./assets/fonts/Inter-Regular.ttf") format("truetype");
+}
 
 /* Theme Extension */
 @theme {
   --font-baloo: "BalooCustom", cursive;
   --font-archivo: "Archivo", sans-serif;
+  --font-inter: "Inter", sans-serif;
 }
