@@ -8,6 +8,10 @@ import AdminDashboard from "../pages/admin/AdminDashboard";
 import ProtectedRoute from "../components/ProtectedRoute";
 import AddProduct from "../pages/admin/AddProduct";
 import AddBrandCategory from "../pages/admin/AddBrandCategory";
+import Users from "../pages/admin/Users";
+import Products from "../pages/admin/Products";
+import StockOps from "../pages/admin/StockOps";
+import Returns from "../pages/admin/Returns";
 
 const router = createBrowserRouter([
   {
@@ -41,6 +45,56 @@ const router = createBrowserRouter([
           
             <ProtectedRoute >
               <AddBrandCategory />
+            </ProtectedRoute>
+          
+        ),
+      },
+      {
+        path: "/admin/users",
+        element: (
+          
+            <ProtectedRoute >
+              <Users />
+            </ProtectedRoute>
+          
+        ),
+      },
+      {
+        path: "/admin/products",
+        element: (
+          
+            <ProtectedRoute >
+              <Products />
+            </ProtectedRoute>
+          
+        ),
+      },
+      {
+        path: "/admin/products",
+        element: (
+          
+            <ProtectedRoute >
+              <Products />
+            </ProtectedRoute>
+          
+        ),
+      },
+      {
+        path: "/admin/stock",
+        element: (
+          
+            <ProtectedRoute >
+              <StockOps />
+            </ProtectedRoute>
+          
+        ),
+      },
+      {
+        path: "/admin/returns",
+        element: (
+          
+            <ProtectedRoute >
+              <Returns />
             </ProtectedRoute>
           
         ),

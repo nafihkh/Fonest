@@ -1,5 +1,5 @@
 // src/pages/admin/AddProduct.jsx
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState, useEffect } from "react";
 import AdminLayout from "../../components/admin/AdminLayout";
 import { api } from "../../services/api";
 import {
@@ -161,21 +161,30 @@ export default function AddProduct() {
   const fileRef = useRef(null);
 
   const [form, setForm] = useState({
-    title: "iPhone 15 Pro Max",
-    brand: "Apple",
-    category: "Smartphones",
-    isPublic: true,
-    featured: true,
-    sellPrice: "899.00",
-    costPrice: "650.00",
-    stock: "250",
-    lowStock: "25",
-    description:
-      "The iPhone 15 Pro Max represents the pinnacle of Apple's engineering, featuring a Grade 5 Titanium design that is both incredibly strong and remarkably light. Powered by the A17 Pro chip, it delivers next-level mobile gaming performance and professional-grade photography.",
+    categoryId: "",
+    brandId: "",
   });
 
   const [images, setImages] = useState([]); // {file, url}
   const [isSaving, setIsSaving] = useState(false);
+  const [categories, setCategories] = useState([]);
+  const [brands, setBrands] = useState([]);
+
+  useEffect(() => {
+    fetchCategories();
+    fetchBrands();
+  }, []);
+
+  const fetchCategories = async () => {
+    const res = await api.get("/api/categories");
+    setCategories(res.data.categories || []);
+  };
+  
+
+  const fetchBrands = async () => {
+    const res = await api.get("/api/brands");
+    setBrands(res.data.brands || []);
+  };
 
   const profit = useMemo(() => {
     const s = Number(form.sellPrice || 0);
@@ -221,8 +230,8 @@ export default function AddProduct() {
 
     // ✅ If you still use BRAND/CATEGORY as strings in UI:
     // send them as name for now, OR map them to real IDs later.
-    fd.append("category", form.category);
-    fd.append("brand", form.brand);       // must be a real id string
+    fd.append("categoryId", form.categoryId);
+    fd.append("brandId", form.brandId);       // must be a real id string
 
     fd.append("name", form.title);
     fd.append("description", form.description);
@@ -240,6 +249,10 @@ export default function AddProduct() {
 
     // ✅ images
     images.forEach((img) => fd.append("images", img.file));
+    if (!form.categoryId || !form.brandId) {
+      alert("Select Category and Brand");
+      return;
+    }
 
     const res = await api.post("/api/products", fd); // axios sets multipart automatically
 
@@ -319,25 +332,27 @@ export default function AddProduct() {
                     <div>
                     <Label>Manufacturer / Brand</Label>
                     <div className="mt-2">
-                        <Select value={form.brand} onChange={update("brand")}>
-                        {brands.map((b) => (
-                            <option key={b} value={b}>
-                            {b}
+                        <Select value={form.brandId} onChange={update("brandId")}>
+                          <option value="">Select Brand</option>
+                          {brands.map((b) => (
+                            <option key={b._id} value={b._id}>
+                              {b.name}
                             </option>
-                        ))}
+                          ))}
                         </Select>
-                    </div>
+                          </div>
                     </div>
 
                     <div>
                     <Label>Product Category</Label>
                     <div className="mt-2">
-                        <Select value={form.category} onChange={update("category")}>
-                        {categories.map((c) => (
-                            <option key={c} value={c}>
-                            {c}
+                        <Select value={form.categoryId} onChange={update("categoryId")}>
+                          <option value="">Select Category</option>
+                          {categories.map((c) => (
+                            <option key={c._id} value={c._id}>
+                              {c.name}
                             </option>
-                        ))}
+                          ))}
                         </Select>
                     </div>
                     </div>
