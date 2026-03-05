@@ -313,7 +313,7 @@ export default function Products() {
               <ActionBtn icon={null} label="Bulk Actions" />
               <ActionBtn icon={Download} label="Export" />
               <ActionBtn icon={BarChart3} label="Product Report" className="text-indigo-700 dark:text-indigo-200 border-indigo-200/70 dark:border-indigo-500/30" />
-              <PrimaryBtn icon={Plus} label="Add Product" />
+              <PrimaryBtn icon={Plus} label="Add Product"  />
             </div>
           </div>
         </div>

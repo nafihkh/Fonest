@@ -12,6 +12,10 @@ import Users from "../pages/admin/Users";
 import Products from "../pages/admin/Products";
 import StockOps from "../pages/admin/StockOps";
 import Returns from "../pages/admin/Returns";
+import ProfitAnalysis from "../pages/admin/ProfitAnalysis";
+import Reports from "../pages/admin/Reports";
+import Settings from "../pages/admin/Settings"
+
 
 const router = createBrowserRouter([
   {
@@ -95,6 +99,36 @@ const router = createBrowserRouter([
           
             <ProtectedRoute >
               <Returns />
+            </ProtectedRoute>
+          
+        ),
+      },
+      {
+        path: "/admin/profit",
+        element: (
+          
+            <ProtectedRoute >
+              <ProfitAnalysis />
+            </ProtectedRoute>
+          
+        ),
+      },
+      {
+        path: "/admin/reports",
+        element: (
+          
+            <ProtectedRoute >
+              <Reports />
+            </ProtectedRoute>
+          
+        ),
+      },
+      {
+        path: "/admin/settings",
+        element: (
+          
+            <ProtectedRoute >
+              <Settings />
             </ProtectedRoute>
           
         ),

@@ -1,6 +1,8 @@
 // src/pages/admin/AddProduct.jsx
 import { useMemo, useRef, useState, useEffect } from "react";
 import AdminLayout from "../../components/admin/AdminLayout";
+import { useDispatch } from "react-redux";
+import { showToast } from "../../store/slices/toastSlice";
 import { api } from "../../services/api";
 import {
   Image as ImageIcon,
@@ -169,6 +171,7 @@ export default function AddProduct() {
   const [isSaving, setIsSaving] = useState(false);
   const [categories, setCategories] = useState([]);
   const [brands, setBrands] = useState([]);
+  const dispatch = useDispatch();
 
   useEffect(() => {
     fetchCategories();
@@ -250,17 +253,35 @@ export default function AddProduct() {
     // ✅ images
     images.forEach((img) => fd.append("images", img.file));
     if (!form.categoryId || !form.brandId) {
-      alert("Select Category and Brand");
+      dispatch(
+        showToast({
+          type: "warning",
+          title: "Missing Fields",
+          message: "Select Category and Brand before saving.",
+        })
+      );
       return;
     }
 
     const res = await api.post("/api/products", fd); // axios sets multipart automatically
 
     console.log("Created:", res.data);
-    alert("Saved as Draft ✅");
+    dispatch(
+      showToast({
+        type: "success",
+        title: "Product Created",
+        message: `${form.title || "Product"} saved as draft successfully.`,
+      })
+    );
   } catch (err) {
     console.error(err);
-    alert(err?.response?.data?.message || "Save failed");
+    dispatch(
+      showToast({
+        type: "error",
+        title: "Save Failed",
+        message: err?.response?.data?.message || "Unable to create product.",
+      })
+    );
   } finally {
     setIsSaving(false);
   }

@@ -1,16 +1,23 @@
 import {Search, Bell, Sun, Moon} from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import NotificationToast from "../ui/NotificationToast"; // adjust path if needed
 import { toggleTheme } from "../../theme/theme";
+import { useDispatch, useSelector } from "react-redux";
 export default function Topbar() {
 
   const [theme, setTheme] = useState(
   document.documentElement.classList.contains("dark") ? "dark" : "light"
 );
+const [notifOpen, setNotifOpen] = useState(false);
+const bellRef = useRef(null);
 
   const handleToggleTheme = () => {
   const next = toggleTheme();   // toggleTheme returns "light" or "dark"
   setTheme(next);
 };
+const dispatch = useDispatch();
+const toast = useSelector((s) => s.toast);
+
   return (
     <header className="h-[68px] bg-white dark:bg-slate-900 border-b border-slate-200/70 dark:border-slate-700 px-6 flex items-center justify-between gap-4">
       <div className="text-[12px] font-semibold text-slate-500 uppercase tracking-wide">
@@ -28,9 +35,24 @@ export default function Topbar() {
       </div>
 
       <div className="flex items-center gap-3">
-        <button className="w-10 h-10">
-          <Bell size={20} className="text-neutral-900 dark:text-slate-100" />
-        </button>
+        <div className="relative" ref={bellRef}>
+          <button
+            type="button"
+            className="w-10 h-10 grid place-items-center rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition"
+          >
+            <Bell size={20} className="text-neutral-900 dark:text-slate-100" />
+          </button>
+
+          <NotificationToast
+            open={toast.open}
+            anchorRef={bellRef}
+            type={toast.type}
+            title={toast.title}
+            message={toast.message}
+            autoCloseMs={toast.autoCloseMs}
+            onClose={() => dispatch(hideToast())}
+          />
+        </div>
         <button
           onClick={handleToggleTheme}
           className="w-10 h-10"
@@ -47,5 +69,7 @@ export default function Topbar() {
         </div>
       </div>
     </header>
+    
   );
+  
 }
