@@ -35,22 +35,18 @@ const toast = useSelector((s) => s.toast);
       </div>
 
       <div className="flex items-center gap-3">
-        <div className="relative" ref={bellRef}>
-          <button
-            type="button"
-            className="w-10 h-10 grid place-items-center rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition"
-          >
-            <Bell size={20} className="text-neutral-900 dark:text-slate-100" />
+        <div className="relative top-1" ref={bellRef}>
+          <button onClick={() => setNotifOpen(p => !p)} className="w-10 h-10 dark:text-slate-100 text-neutral-900">
+            <Bell size={20} />
           </button>
 
           <NotificationToast
-            open={toast.open}
+            open={notifOpen}
             anchorRef={bellRef}
-            type={toast.type}
-            title={toast.title}
-            message={toast.message}
-            autoCloseMs={toast.autoCloseMs}
-            onClose={() => dispatch(hideToast())}
+            onClose={() => setNotifOpen(false)}
+            type="warning"
+            title="Low Stock Warning"
+            message="iPhone 15 Case - Matte Black is below 5 units."
           />
         </div>
         <button

@@ -1,6 +1,8 @@
 // src/pages/admin/Products.jsx
-import { useMemo, useState } from "react";
 import AdminLayout from "../../components/admin/AdminLayout";
+import { useEffect, useMemo, useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import { api } from "../../services/api";
 import {
   Search,
   SlidersHorizontal,
@@ -184,61 +186,6 @@ function Pagination({ page, totalPages, onPrev, onNext, onSet }) {
     </div>
   );
 }
-
-// ---------- demo data ----------
-const seedProducts = [
-  {
-    id: "p1",
-    name: "Nebula X1 Pro Smartphone",
-    brand: "Nebula",
-    sku: "PRD-001",
-    category: "Mobile Phones",
-    price: 999.0,
-    stock: 45,
-    status: "In Stock",
-  },
-  {
-    id: "p2",
-    name: "Zenith Noise-Cancelling Headphones",
-    brand: "Zenith",
-    sku: "PRD-002",
-    category: "Audio",
-    price: 299.0,
-    stock: 8,
-    status: "Low Stock",
-  },
-  {
-    id: "p3",
-    name: "Titan Smartwatch Series 5",
-    brand: "Titan",
-    sku: "PRD-003",
-    category: "Wearables",
-    price: 349.0,
-    stock: 0,
-    status: "Out of Stock",
-  },
-  {
-    id: "p4",
-    name: "Pulse 4K Action Camera",
-    brand: "Pulse",
-    sku: "PRD-004",
-    category: "Cameras",
-    price: 199.0,
-    stock: 112,
-    status: "In Stock",
-  },
-  {
-    id: "p5",
-    name: "GamerMax Mechanical Keyboard",
-    brand: "GamerMax",
-    sku: "PRD-005",
-    category: "Peripherals",
-    price: 129.0,
-    stock: 3,
-    status: "Low Stock",
-  },
-];
-
 function StatusBadge({ status }) {
   if (status === "In Stock") return <Pill tone="green">In Stock</Pill>;
   if (status === "Low Stock") return <Pill tone="amber">Low Stock</Pill>;
@@ -259,18 +206,29 @@ export default function Products() {
   const [q, setQ] = useState("");
   const [page, setPage] = useState(1);
   const [checked, setChecked] = useState({}); // id -> bool
+  const [products, setProducts] = useState([]);
+  const [statusFilter, setStatusFilter] = useState(""); // "", "draft", "active"
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const [filterOpen, setFilterOpen] = useState(false);
+  const filterRef = useRef(null);
+  const [pendingStatus, setPendingStatus] = useState(statusFilter); 
 
   const filtered = useMemo(() => {
     const t = q.trim().toLowerCase();
-    if (!t) return seedProducts;
-    return seedProducts.filter((p) => {
+    if (!t) return products;
+    return products.filter((p) => {
       return (
         p.name.toLowerCase().includes(t) ||
-        p.brand.toLowerCase().includes(t) ||
-        p.sku.toLowerCase().includes(t)
+        (p.brand || "").toLowerCase().includes(t) ||
+        (p.sku || "").toLowerCase().includes(t)
       );
     });
-  }, [q]);
+  }, [q, products]);
+  const navigate = useNavigate();
+  
+
 
   const pageSize = 5;
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
@@ -284,6 +242,85 @@ export default function Products() {
     else rows.forEach((r) => (next[r.id] = true));
     setChecked(next);
   };
+  const openFilter = () => {
+    setPendingStatus(statusFilter);
+    setFilterOpen(true);
+  };
+  useEffect(() => {
+    if (!filterOpen) return;
+
+    const onDown = (e) => {
+      if (filterRef.current && !filterRef.current.contains(e.target)) {
+        setFilterOpen(false);
+      }
+    };
+
+    const onKey = (e) => {
+      if (e.key === "Escape") setFilterOpen(false);
+    };
+
+    window.addEventListener("mousedown", onDown);
+    window.addEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("mousedown", onDown);
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [filterOpen]);
+  useEffect(() => {
+      let mounted = true;
+
+      const fetchProducts = async () => {
+        try {
+          setLoading(true);
+          setError("");
+
+          const res = await api.get("/api/products", {
+            params: statusFilter ? { status: statusFilter } : {},
+          });
+
+          const list = res.data?.products || [];
+          if (!mounted) return;
+
+          // If you didn't populate brand/category, keep safe fallbacks:
+          const normalized = list.map((p) => ({
+            id: p._id || p.id,
+            name: p.name || "",
+            sku: p.sku || "",
+            price: Number(p.price || 0),
+            stock: Number(p.stock || 0),
+
+            // Backend "status" could be: draft|active|inactive|archived
+            // UI wants: In Stock | Low Stock | Out of Stock
+            uiStatus:
+              Number(p.stock || 0) === 0
+                ? "Out of Stock"
+                : Number(p.stock || 0) <= 10
+                ? "Low Stock"
+                : "In Stock",
+
+            // optional if you used populate:
+            brand: p.brandId?.name || p.brand?.name || "—",
+            category: p.categoryId?.name || p.category?.name || "—",
+
+            rawStatus: p.status,
+          }));
+
+          setProducts(normalized);
+          setChecked({});
+        } catch (e) {
+          if (!mounted) return;
+          setError(e?.response?.data?.message || "Failed to load products");
+        } finally {
+          if (mounted) setLoading(false);
+        }
+      };
+
+      fetchProducts();
+
+      return () => {
+        mounted = false;
+      };
+    }, [statusFilter]);
 
   return (
     <AdminLayout>
@@ -309,15 +346,141 @@ export default function Products() {
             />
 
             <div className="flex items-center gap-3 justify-end">
-              <ActionBtn icon={SlidersHorizontal} label="Filters" />
+             <div className="relative" ref={filterRef}>
+                <button
+                  type="button"
+                  onClick={filterOpen ? () => setFilterOpen(false) : openFilter}
+                  className="h-11 px-4 rounded-2xl text-[13px] font-semibold
+                            border border-slate-200/70 dark:border-slate-700
+                            bg-white dark:bg-slate-900
+                            text-slate-700 dark:text-slate-200
+                            hover:bg-slate-50 dark:hover:bg-slate-800 transition
+                            inline-flex items-center gap-2"
+                >
+                  <SlidersHorizontal size={16} />
+                  Filter
+                  {statusFilter ? (
+                    <span className="ml-1 text-[11px] font-bold px-2 py-0.5 rounded-full
+                                    bg-indigo-50 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300">
+                      {statusFilter}
+                    </span>
+                  ) : null}
+                </button>
+
+                {filterOpen && (
+                  <div
+                    className="absolute right-0 top-[52px] z-50 w-[320px]
+                              rounded-2xl bg-white dark:bg-slate-900
+                              border border-slate-200/70 dark:border-slate-700
+                              shadow-[0_12px_30px_rgba(2,6,23,0.12)] p-4"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <div className="text-[13px] font-extrabold text-slate-900 dark:text-slate-100">
+                          Filters
+                        </div>
+                        <div className="mt-0.5 text-[12px] text-slate-500 dark:text-slate-400">
+                          Filter products by publish status.
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => setFilterOpen(false)}
+                        className="w-9 h-9 rounded-xl grid place-items-center
+                                  hover:bg-slate-50 dark:hover:bg-slate-800 transition
+                                  text-slate-500 dark:text-slate-300"
+                        title="Close"
+                      >
+                        ✕
+                      </button>
+                    </div>
+
+                    {/* Status chips */}
+                    <div className="mt-4">
+                      <div className="text-[11px] font-extrabold tracking-wide uppercase text-slate-500 dark:text-slate-400">
+                        Status
+                      </div>
+
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {[
+                          { label: "All", value: "" },
+                          { label: "Active", value: "active" },
+                          { label: "Draft", value: "draft" },
+                        ].map((opt) => {
+                          const active = pendingStatus === opt.value;
+                          return (
+                            <button
+                              key={opt.label}
+                              type="button"
+                              onClick={() => setPendingStatus(opt.value)}
+                              className={[
+                                "h-9 px-4 rounded-full text-[12px] font-semibold transition border",
+                                active
+                                  ? "bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-500/15 dark:text-indigo-300 dark:border-indigo-500/30"
+                                  : "bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 border-slate-200/70 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800",
+                              ].join(" ")}
+                            >
+                              {opt.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="mt-5 flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setPendingStatus("");
+                          setStatusFilter("");
+                          setPage(1);
+                          setFilterOpen(false);
+                        }}
+                        className="flex-1 h-10 rounded-2xl text-[13px] font-semibold
+                                  border border-slate-200/70 dark:border-slate-700
+                                  bg-white dark:bg-slate-900
+                                  text-slate-700 dark:text-slate-200
+                                  hover:bg-slate-50 dark:hover:bg-slate-800 transition"
+                      >
+                        Reset
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setStatusFilter(pendingStatus); // ✅ triggers your useEffect fetch
+                          setPage(1);
+                          setFilterOpen(false);
+                        }}
+                        className="flex-1 h-10 rounded-2xl text-[13px] font-semibold
+                                  bg-indigo-600 text-white hover:bg-indigo-700 transition shadow-sm"
+                      >
+                        Apply
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
               <ActionBtn icon={null} label="Bulk Actions" />
               <ActionBtn icon={Download} label="Export" />
               <ActionBtn icon={BarChart3} label="Product Report" className="text-indigo-700 dark:text-indigo-200 border-indigo-200/70 dark:border-indigo-500/30" />
-              <PrimaryBtn icon={Plus} label="Add Product"  />
+              <PrimaryBtn icon={Plus} label="Add Product" onClick={() => navigate("/admin/addproduct")} />
             </div>
           </div>
         </div>
+        {loading && (
+          <div className="text-[12px] text-slate-500 dark:text-slate-400">
+            Loading products...
+          </div>
+        )}
 
+        {error && (
+          <div className="text-[12px] text-rose-600 dark:text-rose-300">
+            {error}
+          </div>
+        )}
         {/* Table */}
         <div className="bg-white dark:bg-slate-900 border border-slate-200/70 dark:border-slate-700 rounded-2xl shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
@@ -432,7 +595,7 @@ export default function Products() {
                     </td>
 
                     <td className="px-6 py-5">
-                      <StatusBadge status={p.status} />
+                      <StatusBadge status={p.uiStatus} />
                     </td>
 
                     <td className="px-6 py-5">
@@ -451,6 +614,13 @@ export default function Products() {
                   </tr>
                 ))}
               </tbody>
+              {rows.length === 0 && !loading ? (
+                  <tr>
+                    <td colSpan={7} className="px-6 py-10 text-center text-[13px] text-slate-500 dark:text-slate-400">
+                      No products match your filter.
+                    </td>
+                  </tr>
+                ) : null}
             </table>
           </div>
 

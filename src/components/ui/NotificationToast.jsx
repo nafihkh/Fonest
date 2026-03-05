@@ -119,7 +119,7 @@ export default function NotificationToast({
             </button>
           </div>
 
-          <div className="mt-0.5 text-[12px] text-slate-500 dark:text-slate-400 truncate">
+          <div className="mt-0.5 text-[12px] text-slate-500 dark:text-slate-400 line-clamp-2">
             {message}
           </div>
         </div>
