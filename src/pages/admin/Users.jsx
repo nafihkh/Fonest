@@ -1,17 +1,23 @@
-// src/pages/admin/Users.jsx
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect, useRef, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { api } from "../../services/api";
+import EmptyState from "../../components/ui/EmptyState";
+import { TableSkeleton } from "../../components/ui/TableSkeleton";
+import { StatCardSkeleton } from "../../components/ui/StatCardSkeleton";
+import useDebounce from "../../hooks/useDebounce";
 import AdminLayout from "../../components/admin/AdminLayout";
 import {
   Search,
   Download,
   UserPlus,
-  Pencil,
-  Trash2,
   MoreVertical,
   Shield,
   Users as UsersIcon,
   UserCog,
   Clock,
+  Ban,
+  Trash2,
+  CheckCircle2,
 } from "lucide-react";
 
 // ---------- UI helpers ----------
@@ -84,7 +90,13 @@ function Select({ className = "", children, ...props }) {
       </select>
 
       <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-slate-400 dark:text-slate-500">
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+        <svg
+          className="w-4 h-4"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          viewBox="0 0 24 24"
+        >
           <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
         </svg>
       </div>
@@ -93,37 +105,64 @@ function Select({ className = "", children, ...props }) {
 }
 
 function StatusPill({ status }) {
+  const normalized = (status || "").toLowerCase();
+
   const map = {
-    Active:
+    active:
       "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-300 dark:border-emerald-500/30",
-    Pending:
+    pending:
       "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/15 dark:text-amber-300 dark:border-amber-500/30",
-    Suspended:
+    suspended:
       "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-500/15 dark:text-rose-300 dark:border-rose-500/30",
   };
+
+  const label =
+    normalized === "active"
+      ? "Active"
+      : normalized === "pending"
+      ? "Pending"
+      : normalized === "suspended"
+      ? "Suspended"
+      : status;
+
   return (
-    <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full border ${map[status] || map.Active}`}>
-      {status}
+    <span
+      className={`text-[11px] font-bold px-2.5 py-1 rounded-full border ${
+        map[normalized] || map.active
+      }`}
+    >
+      {label}
     </span>
   );
 }
 
 function RoleCell({ role }) {
+  const normalized = (role || "").toLowerCase();
+
   const icon =
-    role === "Admin" ? (
+    normalized === "admin" ? (
       <Shield size={16} className="text-indigo-600 dark:text-indigo-300" />
-    ) : role === "Staff" ? (
+    ) : normalized === "staff" ? (
       <UserCog size={16} className="text-indigo-600 dark:text-indigo-300" />
     ) : (
       <UsersIcon size={16} className="text-indigo-600 dark:text-indigo-300" />
     );
+
+  const label =
+    normalized === "admin"
+      ? "Admin"
+      : normalized === "staff"
+      ? "Staff"
+      : "Customer";
 
   return (
     <div className="flex items-center gap-2">
       <span className="w-8 h-8 rounded-xl bg-indigo-50 dark:bg-indigo-500/15 grid place-items-center">
         {icon}
       </span>
-      <span className="text-[13px] font-semibold text-slate-900 dark:text-slate-100">{role}</span>
+      <span className="text-[13px] font-semibold text-slate-900 dark:text-slate-100">
+        {label}
+      </span>
     </div>
   );
 }
@@ -137,18 +176,22 @@ function Avatar({ name }) {
   );
 }
 
-function Pagination({ page, totalPages, onPrev, onNext, onSet }) {
+function Pagination({ page, totalPages, total, limit, onPrev, onNext, onSet }) {
   const pages = useMemo(() => {
     const arr = [];
     for (let i = 1; i <= totalPages; i++) arr.push(i);
     return arr;
   }, [totalPages]);
 
+  const start = total === 0 ? 0 : (page - 1) * limit + 1;
+  const end = Math.min(page * limit, total);
+
   return (
     <div className="flex items-center justify-between gap-3 px-6 py-4 border-t border-slate-200/70 dark:border-slate-700">
       <div className="text-[11px] text-slate-500 dark:text-slate-400">
-        Showing <span className="font-semibold">1</span> to <span className="font-semibold">6</span> of{" "}
-        <span className="font-semibold">1,240</span> users
+        Showing <span className="font-semibold">{start}</span> to{" "}
+        <span className="font-semibold">{end}</span> of{" "}
+        <span className="font-semibold">{total}</span> users
       </div>
 
       <div className="flex items-center gap-2">
@@ -161,7 +204,7 @@ function Pagination({ page, totalPages, onPrev, onNext, onSet }) {
                      bg-white dark:bg-slate-900
                      text-slate-700 dark:text-slate-200
                      hover:bg-slate-50 dark:hover:bg-slate-800 transition
-                     disabled:opacity-50 disabled:hover:bg-white disabled:dark:hover:bg-slate-900"
+                     disabled:opacity-50"
         >
           Previous
         </button>
@@ -193,7 +236,7 @@ function Pagination({ page, totalPages, onPrev, onNext, onSet }) {
                      bg-white dark:bg-slate-900
                      text-slate-700 dark:text-slate-200
                      hover:bg-slate-50 dark:hover:bg-slate-800 transition
-                     disabled:opacity-50 disabled:hover:bg-white disabled:dark:hover:bg-slate-900"
+                     disabled:opacity-50"
         >
           Next
         </button>
@@ -202,92 +245,267 @@ function Pagination({ page, totalPages, onPrev, onNext, onSet }) {
   );
 }
 
-// ---------- Page ----------
-const seedUsers = [
-  {
-    id: "u1",
-    name: "Alexander Pierce",
-    email: "alex.pierce@fonest.com",
-    role: "Admin",
-    status: "Active",
-    joined: "Jan 12, 2023",
-  },
-  {
-    id: "u2",
-    name: "Sarah Jenkins",
-    email: "s.jenkins@staff.fonest.com",
-    role: "Staff",
-    status: "Active",
-    joined: "Mar 05, 2023",
-  },
-  {
-    id: "u3",
-    name: "Marcus Thorne",
-    email: "m.thorne@customer.io",
-    role: "Customer",
-    status: "Pending",
-    joined: "Oct 22, 2023",
-  },
-  {
-    id: "u4",
-    name: "Elena Rodriguez",
-    email: "elena.r@fonest.com",
-    role: "Staff",
-    status: "Suspended",
-    joined: "Feb 18, 2023",
-  },
-  {
-    id: "u5",
-    name: "David Kim",
-    email: "dkim88@gmail.com",
-    role: "Customer",
-    status: "Active",
-    joined: "Dec 01, 2023",
-  },
-  {
-    id: "u6",
-    name: "Isabella Vang",
-    email: "isa.vang@admin.fonest.com",
-    role: "Admin",
-    status: "Active",
-    joined: "Aug 14, 2022",
-  },
-];
+function UserActionMenu({
+  user,
+  open,
+  loading,
+  onToggle,
+  onBlockToggle,
+  onDelete,
+  menuRef,
+}) {
+  const isBlocked = user.status?.toLowerCase() === "suspended";
+
+  return (
+    <div className="relative" ref={menuRef}>
+      <button
+        type="button"
+        onClick={onToggle}
+        className="w-9 h-9 rounded-xl border border-slate-200/70 dark:border-slate-700
+                   bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 transition
+                   grid place-items-center"
+        title="More"
+      >
+        <MoreVertical size={16} className="text-slate-600 dark:text-slate-200" />
+      </button>
+
+      <AnimatePresence>
+        {open ? (
+          <motion.div
+            initial={{ opacity: 0, y: 8, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 6, scale: 0.98 }}
+            transition={{ duration: 0.18, ease: "easeOut" }}
+            className="absolute right-0 top-11 z-30 w-48 overflow-hidden rounded-2xl
+                       border border-slate-200/80 dark:border-slate-700
+                       bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl
+                       shadow-[0_16px_40px_rgba(15,23,42,0.14)]"
+          >
+            <div className="p-2">
+              <button
+                type="button"
+                onClick={onBlockToggle}
+                disabled={loading}
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left
+                           text-[13px] font-medium text-slate-700 dark:text-slate-200
+                           hover:bg-slate-50 dark:hover:bg-slate-800/80 transition
+                           disabled:opacity-60"
+              >
+                {isBlocked ? (
+                  <CheckCircle2 size={16} className="text-emerald-600 dark:text-emerald-300" />
+                ) : (
+                  <Ban size={16} className="text-amber-600 dark:text-amber-300" />
+                )}
+                <span>{loading ? "Please wait..." : isBlocked ? "Unblock User" : "Block User"}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={onDelete}
+                disabled={loading}
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left
+                           text-[13px] font-medium text-rose-600 dark:text-rose-300
+                           hover:bg-rose-50 dark:hover:bg-rose-500/10 transition
+                           disabled:opacity-60"
+              >
+                <Trash2 size={16} />
+                <span>{loading ? "Please wait..." : "Delete User"}</span>
+              </button>
+            </div>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
+    </div>
+  );
+}
 
 export default function Users() {
   const [query, setQuery] = useState("");
-  const [role, setRole] = useState("All Roles");
-  const [status, setStatus] = useState("All Status");
-  const [page, setPage] = useState(1);
+  const [role, setRole] = useState("");
+  const [status, setStatus] = useState("");
+  const [error, setError] = useState("");
+  const [openMenuId, setOpenMenuId] = useState(null);
+  const [actionLoadingId, setActionLoadingId] = useState(null);
 
-  const filtered = useMemo(() => {
-    return seedUsers
-      .filter((u) => {
-        const q = query.trim().toLowerCase();
-        if (!q) return true;
-        return (
-          u.name.toLowerCase().includes(q) ||
-          u.email.toLowerCase().includes(q) ||
-          u.role.toLowerCase().includes(q)
-        );
-      })
-      .filter((u) => (role === "All Roles" ? true : u.role === role))
-      .filter((u) => (status === "All Status" ? true : u.status === status));
-  }, [query, role, status]);
+  const menuRefs = useRef({});
 
-  const pageSize = 6;
-  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
-  const rows = filtered.slice((page - 1) * pageSize, page * pageSize);
+  const debouncedQuery = useDebounce(query, 500);
+
+  const [users, setUsers] = useState([]);
+  const [stats, setStats] = useState({
+    totalUsers: 0,
+    activeAdmins: 0,
+    staffMembers: 0,
+    pendingApproval: 0,
+  });
+
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 6,
+    total: 0,
+    totalPages: 1,
+  });
+
+  const [loading, setLoading] = useState(false);
+
+  const fetchStats = useCallback(async () => {
+    try {
+      const res = await api.get("/api/admin/users/stats");
+      setStats(res.data.stats);
+    } catch (err) {
+      console.error(err);
+    }
+  }, []);
+
+  const fetchUsers = useCallback(async () => {
+    setLoading(true);
+    setError("");
+
+    const start = Date.now();
+
+    try {
+      const params = {
+        page: pagination.page,
+        limit: pagination.limit,
+      };
+
+      if (debouncedQuery.trim()) params.search = debouncedQuery.trim();
+      if (role) params.role = role;
+      if (status) params.status = status;
+
+      const res = await api.get("/api/users", { params });
+
+      setUsers(res.data.users || []);
+      setPagination((prev) => ({
+        ...prev,
+        total: res.data.pagination?.total || 0,
+        totalPages: res.data.pagination?.totalPages || 1,
+      }));
+    } catch (err) {
+      console.error(err);
+      setError(err?.response?.data?.message || "Failed to load users");
+    } finally {
+      const elapsed = Date.now() - start;
+      const minDuration = 350;
+
+      setTimeout(() => {
+        setLoading(false);
+      }, Math.max(0, minDuration - elapsed));
+    }
+  }, [debouncedQuery, role, status, pagination.page, pagination.limit]);
+
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
+
+  useEffect(() => {
+    fetchStats();
+  }, [fetchStats]);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!openMenuId) return;
+
+      const currentRef = menuRefs.current[openMenuId];
+      if (currentRef && !currentRef.contains(event.target)) {
+        setOpenMenuId(null);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [openMenuId]);
+
+  const rows = users;
+
+  const handleDelete = async (id) => {
+    const ok = window.confirm("Delete this user?");
+    if (!ok) return;
+
+    try {
+      setActionLoadingId(id);
+      await api.delete(`/api/users/${id}`);
+      setOpenMenuId(null);
+      await fetchUsers();
+      await fetchStats();
+    } catch (err) {
+      console.error(err);
+      setError(err?.response?.data?.message || "Delete failed");
+    } finally {
+      setActionLoadingId(null);
+    }
+  };
+
+  const handleBlockToggle = async (user) => {
+    try {
+      setActionLoadingId(user._id);
+
+      const isBlocked = user.status?.toLowerCase() === "suspended";
+      const endpoint = isBlocked
+        ? `/api/users/${user._id}/unblock`
+        : `/api/users/${user._id}/block`;
+
+      await api.patch(endpoint);
+
+      setOpenMenuId(null);
+      await fetchUsers();
+      await fetchStats();
+    } catch (err) {
+      console.error(err);
+      setError(
+        err?.response?.data?.message ||
+          (user.status?.toLowerCase() === "suspended"
+            ? "Unblock failed"
+            : "Block failed")
+      );
+    } finally {
+      setActionLoadingId(null);
+    }
+  };
 
   return (
     <AdminLayout>
       <div className="space-y-6">
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <StatTile icon={UsersIcon} title="Total Users" value="12,482" badge="+8.2%" badgeTone="green" />
-          <StatTile icon={Shield} title="Active Admins" value="14" badge="Stable" />
-          <StatTile icon={UserCog} title="Staff Members" value="156" badge="+24" badgeTone="green" />
-          <StatTile icon={Clock} title="Pending Approval" value="43" badge="-12%" badgeTone="red" />
+          {loading && stats.totalUsers === 0 ? (
+            <>
+              <StatCardSkeleton />
+              <StatCardSkeleton />
+              <StatCardSkeleton />
+              <StatCardSkeleton />
+            </>
+          ) : (
+            <>
+              <StatTile
+                icon={UsersIcon}
+                title="Total Users"
+                value={stats.totalUsers}
+                badge="+8.2%"
+                badgeTone="green"
+              />
+              <StatTile
+                icon={Shield}
+                title="Active Admins"
+                value={stats.activeAdmins}
+                badge="Stable"
+              />
+              <StatTile
+                icon={UserCog}
+                title="Staff Members"
+                value={stats.staffMembers}
+                badge="+24"
+                badgeTone="green"
+              />
+              <StatTile
+                icon={Clock}
+                title="Pending Approval"
+                value={stats.pendingApproval}
+                badge="-12%"
+                badgeTone="red"
+              />
+            </>
+          )}
         </div>
 
         {/* Filters + table */}
@@ -295,14 +513,17 @@ export default function Users() {
           {/* Filter bar */}
           <div className="p-5 flex flex-col lg:flex-row lg:items-center gap-3 lg:gap-4">
             <div className="relative flex-1">
-              <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+              <Search
+                size={16}
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
+              />
               <Input
                 value={query}
                 onChange={(e) => {
                   setQuery(e.target.value);
-                  setPage(1);
+                  setPagination((p) => ({ ...p, page: 1 }));
                 }}
-                placeholder="Search by name, email, or role..."
+                placeholder="Search by name or email..."
               />
             </div>
 
@@ -311,26 +532,26 @@ export default function Users() {
                 value={role}
                 onChange={(e) => {
                   setRole(e.target.value);
-                  setPage(1);
+                  setPagination((p) => ({ ...p, page: 1 }));
                 }}
               >
-                <option>All Roles</option>
-                <option>Admin</option>
-                <option>Staff</option>
-                <option>Customer</option>
+                <option value="">All Roles</option>
+                <option value="admin">Admin</option>
+                <option value="staff">Staff</option>
+                <option value="customer">Customer</option>
               </Select>
 
               <Select
                 value={status}
                 onChange={(e) => {
                   setStatus(e.target.value);
-                  setPage(1);
+                  setPagination((p) => ({ ...p, page: 1 }));
                 }}
               >
-                <option>All Status</option>
-                <option>Active</option>
-                <option>Pending</option>
-                <option>Suspended</option>
+                <option value="">All Status</option>
+                <option value="active">Active</option>
+                <option value="pending">Pending</option>
+                <option value="suspended">Suspended</option>
               </Select>
             </div>
 
@@ -361,85 +582,136 @@ export default function Users() {
           </div>
 
           {/* Table */}
-          <div className="px-5 pb-5">
-            <div className="overflow-hidden rounded-2xl border border-slate-200/70 dark:border-slate-700">
-              <div className="grid grid-cols-12 bg-slate-50 dark:bg-slate-800 px-5 py-3 text-[11px] font-extrabold tracking-wide uppercase text-slate-500 dark:text-slate-300">
-                <div className="col-span-5">User Profile</div>
-                <div className="col-span-3">Account Role</div>
-                <div className="col-span-2">Status</div>
-                <div className="col-span-1">Joined Date</div>
-                <div className="col-span-1 text-right">Actions</div>
-              </div>
-
-              {rows.map((u) => (
-                <div
-                  key={u.id}
-                  className="grid grid-cols-12 px-5 py-4 border-t border-slate-200/70 dark:border-slate-700 items-center"
+          <div className="px-5 pb-5 min-h-[420px]">
+            <AnimatePresence mode="wait">
+              {loading ? (
+                <motion.div
+                  key="loading"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
                 >
-                  <div className="col-span-5 flex items-center gap-3">
-                    <Avatar name={u.name} />
-                    <div>
-                      <div className="text-[13px] font-semibold text-slate-900 dark:text-slate-100">
-                        {u.name}
+                  <TableSkeleton rows={6} columns={5} />
+                </motion.div>
+              ) : error ? (
+                <motion.div
+                  key="error"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.22 }}
+                  className="overflow-hidden rounded-2xl border border-slate-200/70 dark:border-slate-700 bg-white dark:bg-slate-900"
+                >
+                  <div className="py-12 text-center text-[13px] text-rose-600 dark:text-rose-300">
+                    {error}
+                  </div>
+                </motion.div>
+              ) : rows.length === 0 ? (
+                <motion.div
+                  key="empty"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.22 }}
+                  className="overflow-hidden rounded-2xl border border-slate-200/70 dark:border-slate-700 bg-white dark:bg-slate-900"
+                >
+                  <EmptyState
+                    title="No users found"
+                    message="Try changing your search or filters."
+                  />
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="table"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.25, ease: "easeOut" }}
+                  className="overflow-hidden rounded-2xl border border-slate-200/70 dark:border-slate-700"
+                >
+                  <div className="grid grid-cols-12 bg-slate-50 dark:bg-slate-800 px-5 py-3 text-[11px] font-extrabold tracking-wide uppercase text-slate-500 dark:text-slate-300">
+                    <div className="col-span-5">User Profile</div>
+                    <div className="col-span-3">Account Role</div>
+                    <div className="col-span-2">Status</div>
+                    <div className="col-span-1">Joined Date</div>
+                    <div className="col-span-1 text-right">Actions</div>
+                  </div>
+
+                  {rows.map((u, index) => (
+                    <motion.div
+                      key={u._id}
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.2, delay: index * 0.04 }}
+                      className="grid grid-cols-12 px-5 py-4 border-t border-slate-200/70 dark:border-slate-700 items-center"
+                    >
+                      <div className="col-span-5 flex items-center gap-3">
+                        <Avatar name={u.name} />
+                        <div>
+                          <div className="text-[13px] font-semibold text-slate-900 dark:text-slate-100">
+                            {u.name}
+                          </div>
+                          <div className="text-[11px] text-slate-500 dark:text-slate-400">
+                            {u.email}
+                          </div>
+                        </div>
                       </div>
-                      <div className="text-[11px] text-slate-500 dark:text-slate-400">{u.email}</div>
-                    </div>
-                  </div>
 
-                  <div className="col-span-3">
-                    <RoleCell role={u.role} />
-                  </div>
+                      <div className="col-span-3">
+                        <RoleCell role={u.role} />
+                      </div>
 
-                  <div className="col-span-2">
-                    <StatusPill status={u.status} />
-                  </div>
+                      <div className="col-span-2">
+                        <StatusPill status={u.status} />
+                      </div>
 
-                  <div className="col-span-1 text-[12px] text-slate-500 dark:text-slate-400">
-                    {u.joined}
-                  </div>
+                      <div className="col-span-1 text-[12px] text-slate-500 dark:text-slate-400">
+                        {new Date(u.createdAt).toLocaleDateString()}
+                      </div>
 
-                  <div className="col-span-1 flex justify-end items-center gap-2">
-                    <button
-                      type="button"
-                      className="w-9 h-9 rounded-xl border border-slate-200/70 dark:border-slate-700
-                                 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 transition
-                                 grid place-items-center"
-                      title="Edit"
-                    >
-                      <Pencil size={16} className="text-slate-600 dark:text-slate-200" />
-                    </button>
+                      <div className="col-span-1 flex justify-end items-center gap-2">
+                        <UserActionMenu
+                          user={u}
+                          open={openMenuId === u._id}
+                          loading={actionLoadingId === u._id}
+                          onToggle={() =>
+                            setOpenMenuId((prev) => (prev === u._id ? null : u._id))
+                          }
+                          onBlockToggle={() => handleBlockToggle(u)}
+                          onDelete={() => handleDelete(u._id)}
+                          menuRef={(node) => {
+                            if (node) menuRefs.current[u._id] = node;
+                          }}
+                        />
+                      </div>
+                    </motion.div>
+                  ))}
 
-                    <button
-                      type="button"
-                      className="w-9 h-9 rounded-xl border border-slate-200/70 dark:border-slate-700
-                                 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 transition
-                                 grid place-items-center"
-                      title="Delete"
-                    >
-                      <Trash2 size={16} className="text-slate-600 dark:text-slate-200" />
-                    </button>
-
-                    <button
-                      type="button"
-                      className="w-9 h-9 rounded-xl border border-slate-200/70 dark:border-slate-700
-                                 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 transition
-                                 grid place-items-center"
-                      title="More"
-                    >
-                      <MoreVertical size={16} className="text-slate-600 dark:text-slate-200" />
-                    </button>
-                  </div>
-                </div>
-              ))}
-
-              <Pagination
-                page={page}
-                totalPages={totalPages}
-                onPrev={() => setPage((p) => Math.max(1, p - 1))}
-                onNext={() => setPage((p) => Math.min(totalPages, p + 1))}
-                onSet={setPage}
-              />
-            </div>
+                  <Pagination
+                    page={pagination.page}
+                    totalPages={pagination.totalPages}
+                    total={pagination.total}
+                    limit={pagination.limit}
+                    onPrev={() =>
+                      setPagination((p) => ({
+                        ...p,
+                        page: Math.max(1, p.page - 1),
+                      }))
+                    }
+                    onNext={() =>
+                      setPagination((p) => ({
+                        ...p,
+                        page: Math.min(p.totalPages, p.page + 1),
+                      }))
+                    }
+                    onSet={(nextPage) =>
+                      setPagination((p) => ({ ...p, page: nextPage }))
+                    }
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
       </div>

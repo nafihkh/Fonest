@@ -1,6 +1,11 @@
 // src/pages/admin/StockOps.jsx
-import { useMemo, useState } from "react";
+import { useMemo, useState,  useEffect, useRef } from "react";
 import AdminLayout from "../../components/admin/AdminLayout";
+import { api } from "../../services/api";
+import { useDispatch } from "react-redux";
+import { showToast } from "../../store/slices/toastSlice";
+import useDebounce from "../../hooks/useDebounce";
+import { useNavigate } from "react-router-dom";
 import {
   Search,
   ArrowUpRight,
@@ -14,6 +19,7 @@ import {
   Clock3,
   BadgeCheck,
   ChevronRight,
+  Loader2,
 } from "lucide-react";
 
 // ---------- small UI helpers ----------
@@ -219,7 +225,16 @@ const movementsSeed = [
 export default function StockOps() {
   const [mode, setMode] = useState("in");
   const [globalMin, setGlobalMin] = useState(15);
-
+  const [productResults, setProductResults] = useState([]);
+  const [productSearchLoading, setProductSearchLoading] = useState(false);
+  const [showProductDropdown, setShowProductDropdown] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const productSearchRef = useRef(null);
+  const [submitLoading, setSubmitLoading] = useState(false);
+  const dispatch = useDispatch();
+  const [recentMoves, setRecentMoves] = useState([]);
+  const [movesLoading, setMovesLoading] = useState(false);
+  const navigate = useNavigate();
   const [entry, setEntry] = useState({
     query: "",
     qty: "",
@@ -227,6 +242,186 @@ export default function StockOps() {
     date: "",
     notes: "",
   });
+
+  const debouncedProductQuery = useDebounce(entry.query, 350);
+  const fetchRecentMoves = async () => {
+    try {
+      setMovesLoading(true);
+
+      const res = await api.get("/api/admin/stock/activity", {
+        params: { page: 1, limit: 8 },
+      });
+
+      setRecentMoves(res.data.activities || []);
+    } catch (err) {
+      console.error(err);
+      setRecentMoves([]);
+    } finally {
+      setMovesLoading(false);
+    }
+  };
+  useEffect(() => {
+    fetchRecentMoves();
+  }, []);
+
+  useEffect(() => {
+    const fetchSuggestions = async () => {
+      const q = entry.query.trim();
+
+      if (!q) {
+        setProductResults([]);
+        setShowProductDropdown(false);
+        return;
+      }
+
+      try {
+        setProductSearchLoading(true);
+
+        const res = await api.get("/api/search-suggestions", {
+          params: { q },
+        });
+
+        setProductResults(res.data.products || []);
+        setShowProductDropdown(true);
+      } catch (err) {
+        console.error(err);
+        setProductResults([]);
+        setShowProductDropdown(false);
+      } finally {
+        setProductSearchLoading(false);
+      }
+    };
+
+    fetchSuggestions();
+  }, [debouncedProductQuery]);
+
+  useEffect(() => {
+    const handleOutside = (e) => {
+      if (
+        productSearchRef.current &&
+        !productSearchRef.current.contains(e.target)
+      ) {
+        setShowProductDropdown(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleOutside);
+    return () => document.removeEventListener("mousedown", handleOutside);
+  }, []);
+  const handleSelectProduct = (product) => {
+    setSelectedProduct(product);
+    setEntry((prev) => ({
+      ...prev,
+      query: product.name,
+    }));
+    setShowProductDropdown(false);
+
+    dispatch(
+      showToast({
+        type: "success",
+        title: "Product Selected",
+        message: `${product.name} selected for stock operation.`,
+      })
+    );
+  };
+  const handleSubmitStock = async () => {
+    if (!selectedProduct?._id) {
+      dispatch(
+        showToast({
+          type: "warning",
+          title: "Product Required",
+          message: "Please select a product first.",
+        })
+      );
+      return;
+    }
+
+    const qty = Number(entry.qty);
+    if (!qty || qty <= 0) {
+      dispatch(
+        showToast({
+          type: "warning",
+          title: "Invalid Quantity",
+          message: "Enter a valid quantity greater than 0.",
+        })
+      );
+      return;
+    }
+
+    try {
+      setSubmitLoading(true);
+
+      if (mode === "in") {
+        const res = await api.post("/api/admin/stock/in", {
+          productId: selectedProduct._id,
+          quantityAdded: qty,
+          supplier: entry.supplier,
+          reference: "",
+          date: entry.date,
+          notes: entry.notes,
+        });
+
+        dispatch(
+          showToast({
+            type: "success",
+            title: "Stock Added",
+            message: `${selectedProduct.name} stock increased successfully.`,
+          })
+        );
+
+        console.log("Stock in success:", res.data);
+      } else {
+        const res = await api.post("/api/admin/stock/out", {
+          productId: selectedProduct._id,
+          quantityRemoved: qty,
+          reason: "manual",
+          reference: entry.supplier,
+          date: entry.date,
+          notes: entry.notes,
+        });
+
+        dispatch(
+          showToast({
+            type: "success",
+            title: "Stock Updated",
+            message: `${selectedProduct.name} stock out recorded successfully.`,
+          })
+        );
+
+        console.log("Stock out success:", res.data);
+      }
+
+      setEntry({
+        query: "",
+        qty: "",
+        supplier: "",
+        date: "",
+        notes: "",
+      });
+      setSelectedProduct(null);
+      setProductResults([]);
+      setShowProductDropdown(false);
+
+      // call these if already connected
+      // fetchStats();
+      // fetchActivity();
+      // fetchAlerts();
+    } catch (err) {
+      console.error(err);
+
+      dispatch(
+        showToast({
+          type: "error",
+          title: "Stock Update Failed",
+          message: err?.response?.data?.message || "Unable to update stock.",
+        })
+      );
+    } finally {
+      setSubmitLoading(false);
+    }
+  };
+
+  
 
   const lastUpdated = useMemo(() => {
     const now = new Date();
@@ -289,16 +484,96 @@ export default function StockOps() {
               }
             >
               <div className="space-y-4">
-                <div>
+                <div ref={productSearchRef}>
                   <Label>Select Product</Label>
-                  <div className="mt-2">
+                  <div className="mt-2 relative">
                     <TextInput
                       leftIcon={Search}
                       placeholder="Search gadget name or SKU..."
                       value={entry.query}
-                      onChange={(e) => setEntry((p) => ({ ...p, query: e.target.value }))}
+                      onChange={(e) => {
+                        setEntry((p) => ({ ...p, query: e.target.value }));
+                        setSelectedProduct(null);
+                      }}
+                      onFocus={() => {
+                        if (productResults.length > 0) setShowProductDropdown(true);
+                      }}
                     />
+
+                    {productSearchLoading ? (
+                      <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                        <Loader2 size={16} className="animate-spin text-slate-400" />
+                      </div>
+                    ) : null}
+
+                    {showProductDropdown && (
+                      <div
+                        className="absolute left-0 right-0 top-[48px] z-40 overflow-hidden rounded-2xl
+                                  border border-slate-200/70 dark:border-slate-700
+                                  bg-white dark:bg-slate-900 shadow-[0_12px_30px_rgba(2,6,23,0.12)]"
+                      >
+                        {productResults.length > 0 ? (
+                          <div className="max-h-72 overflow-y-auto py-2">
+                            {productResults.map((product) => {
+                              const isOut = Number(product.stock || 0) === 0;
+                              const isLow =
+                                Number(product.stock || 0) > 0 &&
+                                Number(product.stock || 0) <= Number(product.lowStockThreshold || 0);
+
+                              return (
+                                <button
+                                  key={product._id}
+                                  type="button"
+                                  onClick={() => handleSelectProduct(product)}
+                                  className="w-full px-4 py-3 text-left hover:bg-slate-50 dark:hover:bg-slate-800 transition"
+                                >
+                                  <div className="flex items-center justify-between gap-3">
+                                    <div className="min-w-0">
+                                      <div className="text-[13px] font-semibold text-slate-900 dark:text-slate-100 truncate">
+                                        {product.name}
+                                      </div>
+                                      <div className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
+                                        SKU: {product.sku} • ₹{product.price}
+                                      </div>
+                                    </div>
+
+                                    <div className="shrink-0">
+                                      <span
+                                        className={[
+                                          "inline-flex items-center text-[10px] font-bold px-2 py-1 rounded-full border",
+                                          isOut
+                                            ? "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-500/15 dark:text-rose-300 dark:border-rose-500/30"
+                                            : isLow
+                                            ? "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/15 dark:text-amber-300 dark:border-amber-500/30"
+                                            : "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-300 dark:border-emerald-500/30",
+                                        ].join(" ")}
+                                      >
+                                        Stock: {product.stock}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        ) : (
+                          <div className="px-4 py-4 text-[12px] text-slate-500 dark:text-slate-400">
+                            No matching products found
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
+
+                  {selectedProduct ? (
+                    <div className="mt-2 text-[12px] text-slate-500 dark:text-slate-400">
+                      Selected:{" "}
+                      <span className="font-semibold text-slate-700 dark:text-slate-200">
+                        {selectedProduct.name}
+                      </span>{" "}
+                      • SKU: {selectedProduct.sku} • Current stock: {selectedProduct.stock}
+                    </div>
+                  ) : null}
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -352,12 +627,19 @@ export default function StockOps() {
                 <div className="pt-2">
                   <button
                     type="button"
+                    onClick={handleSubmitStock}
+                    disabled={submitLoading}
                     className="w-full h-11 rounded-2xl text-[13px] font-semibold
-                               bg-indigo-600 text-white hover:bg-indigo-700 transition
-                               shadow-sm inline-flex items-center justify-center gap-2"
+                              bg-indigo-600 text-white hover:bg-indigo-700 transition
+                              shadow-sm inline-flex items-center justify-center gap-2
+                              disabled:opacity-60"
                   >
                     <BadgeCheck size={16} />
-                    {mode === "in" ? "Complete Stock In" : "Complete Stock Out"}
+                    {submitLoading
+                      ? "Please wait..."
+                      : mode === "in"
+                      ? "Complete Stock In"
+                      : "Complete Stock Out"}
                   </button>
                 </div>
               </div>
@@ -368,42 +650,71 @@ export default function StockOps() {
               title="Recent Stock Movements"
               subtitle="Real-time log of the last 5 transactions across all categories."
             >
-              <div className="overflow-hidden rounded-2xl border border-slate-200/70 dark:border-slate-700">
-                <div className="grid grid-cols-12 bg-slate-50 dark:bg-slate-800 px-4 py-3 text-[11px] font-extrabold tracking-wide uppercase text-slate-500 dark:text-slate-300">
-                  <div className="col-span-2">Type</div>
+              <div className="rounded-2xl border border-slate-200/70 dark:border-slate-700 overflow-hidden">
+                <div className="grid grid-cols-12 bg-slate-50 dark:bg-slate-800 px-5 py-3 text-[11px] font-extrabold tracking-wide uppercase text-slate-500 dark:text-slate-300">
                   <div className="col-span-4">Product</div>
+                  <div className="col-span-2">Move</div>
                   <div className="col-span-2">Quantity</div>
-                  <div className="col-span-3">Performed By</div>
-                  <div className="col-span-1 text-right">Time</div>
+                  <div className="col-span-2">Reference</div>
+                  <div className="col-span-2">Date</div>
                 </div>
 
-                {movementsSeed.map((m) => (
-                  <div
-                    key={m.id}
-                    className="grid grid-cols-12 px-4 py-3 border-t border-slate-200/70 dark:border-slate-700 items-center"
-                  >
-                    <div className="col-span-2">
-                      {m.type === "IN" ? <Pill tone="green">IN</Pill> : <Pill tone="red">OUT</Pill>}
-                    </div>
-                    <div className="col-span-4 text-[12px] font-semibold text-slate-900 dark:text-slate-100">
-                      {m.product}
-                    </div>
-                    <div className={`col-span-2 text-[12px] font-bold ${m.type === "IN" ? "text-indigo-600 dark:text-indigo-300" : "text-rose-600 dark:text-rose-300"}`}>
-                      {m.qty}
-                    </div>
-                    <div className="col-span-3 text-[12px] text-slate-600 dark:text-slate-300">
-                      {m.by}
-                    </div>
-                    <div className="col-span-1 text-right text-[11px] text-slate-500 dark:text-slate-400">
-                      {m.time}
-                    </div>
+                {movesLoading ? (
+                  <div className="px-5 py-10 text-center text-[13px] text-slate-500 dark:text-slate-400">
+                    Loading recent stock moves...
                   </div>
-                ))}
-              </div>
+                ) : recentMoves.length === 0 ? (
+                  <div className="px-5 py-10 text-center text-[13px] text-slate-500 dark:text-slate-400">
+                    No recent stock moves found.
+                  </div>
+                ) : (
+                  recentMoves.map((move) => (
+                    <div
+                      key={`${move.type}-${move._id}`}
+                      className="grid grid-cols-12 px-5 py-4 border-t border-slate-200/70 dark:border-slate-700 items-center"
+                    >
+                      <div className="col-span-4">
+                        <div className="text-[13px] font-semibold text-slate-900 dark:text-slate-100">
+                          {move.product?.name || "Unknown Product"}
+                        </div>
+                        <div className="text-[11px] text-slate-500 dark:text-slate-400">
+                          SKU: {move.product?.sku || "—"}
+                        </div>
+                      </div>
+
+                      <div className="col-span-2">
+                        <span
+                          className={[
+                            "inline-flex items-center text-[11px] font-bold px-2.5 py-1 rounded-full border",
+                            move.type === "in"
+                              ? "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-300 dark:border-emerald-500/30"
+                              : "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-500/15 dark:text-rose-300 dark:border-rose-500/30",
+                          ].join(" ")}
+                        >
+                          {move.type === "in" ? "Stock In" : "Stock Out"}
+                        </span>
+                      </div>
+
+                      <div className="col-span-2 text-[13px] font-semibold text-slate-900 dark:text-slate-100">
+                        {move.quantity}
+                      </div>
+
+                      <div className="col-span-2 text-[12px] text-slate-500 dark:text-slate-400">
+                        {move.reference || move.reason || move.supplier || "—"}
+                      </div>
+
+                      <div className="col-span-2 text-[12px] text-slate-500 dark:text-slate-400">
+                        {new Date(move.createdAt).toLocaleDateString()}
+                      </div>
+                    </div>
+                  ))
+                )}
+</div>
 
               <div className="pt-4 flex justify-center">
                 <button
                   type="button"
+                  onClick={() => navigate("/admin/stock-history")}
                   className="text-[12px] font-semibold text-indigo-600 hover:text-indigo-700 dark:text-indigo-300 dark:hover:text-indigo-200 transition inline-flex items-center gap-1"
                 >
                   View Full Transaction History <ChevronRight size={14} />

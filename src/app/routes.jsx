@@ -15,6 +15,7 @@ import Returns from "../pages/admin/Returns";
 import ProfitAnalysis from "../pages/admin/ProfitAnalysis";
 import Reports from "../pages/admin/Reports";
 import Settings from "../pages/admin/Settings"
+import StockHistory from "../pages/admin/StockHistory";
 
 
 const router = createBrowserRouter([
@@ -27,7 +28,7 @@ const router = createBrowserRouter([
         path: "/admin",
         element: (
           
-            <ProtectedRoute >
+            <ProtectedRoute role="admin" >
               <AdminDashboard />
             </ProtectedRoute>
           
@@ -37,7 +38,7 @@ const router = createBrowserRouter([
         path: "/admin/addproduct",
         element: (
           
-            <ProtectedRoute >
+            <ProtectedRoute role="admin" >
               <AddProduct />
             </ProtectedRoute>
           
@@ -47,7 +48,7 @@ const router = createBrowserRouter([
         path: "/admin/brand&catogary",
         element: (
           
-            <ProtectedRoute >
+            <ProtectedRoute role="admin" >
               <AddBrandCategory />
             </ProtectedRoute>
           
@@ -57,7 +58,7 @@ const router = createBrowserRouter([
         path: "/admin/users",
         element: (
           
-            <ProtectedRoute >
+            <ProtectedRoute role="admin" >
               <Users />
             </ProtectedRoute>
           
@@ -67,7 +68,7 @@ const router = createBrowserRouter([
         path: "/admin/products",
         element: (
           
-            <ProtectedRoute >
+            <ProtectedRoute role="admin" >
               <Products />
             </ProtectedRoute>
           
@@ -77,7 +78,7 @@ const router = createBrowserRouter([
         path: "/admin/products",
         element: (
           
-            <ProtectedRoute >
+            <ProtectedRoute role="admin" >
               <Products />
             </ProtectedRoute>
           
@@ -87,7 +88,7 @@ const router = createBrowserRouter([
         path: "/admin/stock",
         element: (
           
-            <ProtectedRoute >
+            <ProtectedRoute role="admin" >
               <StockOps />
             </ProtectedRoute>
           
@@ -97,7 +98,7 @@ const router = createBrowserRouter([
         path: "/admin/returns",
         element: (
           
-            <ProtectedRoute >
+            <ProtectedRoute role="admin" >
               <Returns />
             </ProtectedRoute>
           
@@ -107,7 +108,7 @@ const router = createBrowserRouter([
         path: "/admin/profit",
         element: (
           
-            <ProtectedRoute >
+            <ProtectedRoute role="admin" >
               <ProfitAnalysis />
             </ProtectedRoute>
           
@@ -117,7 +118,7 @@ const router = createBrowserRouter([
         path: "/admin/reports",
         element: (
           
-            <ProtectedRoute >
+            <ProtectedRoute role="admin" >
               <Reports />
             </ProtectedRoute>
           
@@ -127,8 +128,18 @@ const router = createBrowserRouter([
         path: "/admin/settings",
         element: (
           
-            <ProtectedRoute >
+            <ProtectedRoute role="admin" >
               <Settings />
+            </ProtectedRoute>
+          
+        ),
+      },
+      {
+        path: "/admin/stock-history",
+        element: (
+          
+            <ProtectedRoute role="admin" >
+              <StockHistory />
             </ProtectedRoute>
           
         ),

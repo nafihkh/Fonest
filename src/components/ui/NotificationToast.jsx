@@ -4,13 +4,12 @@ import {
   CheckCircle2,
   XCircle,
   Info,
-  MoreHorizontal,
+  X,
 } from "lucide-react";
 
 export default function NotificationToast({
   open,
-  anchorRef,
-  type = "info", // success | error | warning | info
+  type = "info",
   title = "Notification",
   message = "",
   autoCloseMs = 3500,
@@ -18,31 +17,26 @@ export default function NotificationToast({
 }) {
   const popRef = useRef(null);
 
-  // auto close
   useEffect(() => {
     if (!open) return;
     const t = setTimeout(() => onClose?.(), autoCloseMs);
     return () => clearTimeout(t);
   }, [open, autoCloseMs, onClose]);
 
-  // close on outside click
   useEffect(() => {
     if (!open) return;
 
     const handler = (e) => {
-      const anchorEl = anchorRef?.current;
       const popEl = popRef.current;
-      if (!anchorEl || !popEl) return;
-      if (anchorEl.contains(e.target)) return;
+      if (!popEl) return;
       if (popEl.contains(e.target)) return;
       onClose?.();
     };
 
     window.addEventListener("mousedown", handler);
     return () => window.removeEventListener("mousedown", handler);
-  }, [open, anchorRef, onClose]);
+  }, [open, onClose]);
 
-  // close on Esc
   useEffect(() => {
     if (!open) return;
     const onKey = (e) => e.key === "Escape" && onClose?.();
@@ -90,7 +84,7 @@ export default function NotificationToast({
     <div
       ref={popRef}
       className={[
-        "absolute right-[-100px] top-[68px] z-50 w-[340px] rounded-2xl p-3",
+        "fixed top-5 right-5 z-[9999] w-[340px] rounded-2xl p-3",
         "bg-white dark:bg-slate-900",
         "border shadow-[0_12px_30px_rgba(2,6,23,0.12)]",
         "border-slate-200/70 dark:border-slate-700",
@@ -110,16 +104,17 @@ export default function NotificationToast({
 
             <button
               type="button"
+              onClick={onClose}
               className="w-8 h-8 rounded-xl grid place-items-center
                          text-slate-500 dark:text-slate-300
                          hover:bg-slate-50 dark:hover:bg-slate-800 transition"
-              title="More"
+              title="Close"
             >
-              <MoreHorizontal size={18} />
+              <X size={16} />
             </button>
           </div>
 
-          <div className="mt-0.5 text-[12px] text-slate-500 dark:text-slate-400 line-clamp-2">
+          <div className="mt-0.5 text-[12px] text-slate-500 dark:text-slate-400">
             {message}
           </div>
         </div>
