@@ -6,6 +6,7 @@ import { useDispatch } from "react-redux";
 import { showToast } from "../../store/slices/toastSlice";
 import useDebounce from "../../hooks/useDebounce";
 import { useNavigate } from "react-router-dom";
+import ConfirmModal from "../../components/ui/ConfirmModal";
 import {
   Search,
   ArrowUpRight,
@@ -177,49 +178,126 @@ function MiniBtn({ children, tone = "primary", ...props }) {
   );
 }
 
-// ---------- demo data ----------
-const alertsSeed = [
-  {
-    id: "a1",
-    status: "Out of Stock",
-    tone: "red",
-    name: "iPhone 15 Pro Max - Titanium",
-    current: 0,
-    img: "📱",
-  },
-  {
-    id: "a2",
-    status: "Low Stock",
-    tone: "amber",
-    name: "Sony WH-1000XM5 Headphones",
-    current: 4,
-    img: "🎧",
-  },
-  {
-    id: "a3",
-    status: "Low Stock",
-    tone: "amber",
-    name: "MacBook Air M3 - 13”",
-    current: 7,
-    img: "💻",
-  },
-  {
-    id: "a4",
-    status: "Out of Stock",
-    tone: "red",
-    name: "Logitech MX Master 3S",
-    current: 0,
-    img: "🖱️",
-  },
-];
 
-const movementsSeed = [
-  { id: "m1", type: "IN", product: "Samsung S24 Ultra", qty: "+50", by: "Admin Sarah", time: "12 mins ago" },
-  { id: "m2", type: "OUT", product: "AirPods Pro Gen 2", qty: "-2", by: "POS Terminal 1", time: "25 mins ago" },
-  { id: "m3", type: "OUT", product: "Apple Watch Series 9", qty: "-1", by: "Online Store", time: "48 mins ago" },
-  { id: "m4", type: "IN", product: "Dell XPS 15", qty: "+10", by: "Admin Sarah", time: "2 hours ago" },
-  { id: "m5", type: "OUT", product: "iPad Pro 11”", qty: "-3", by: "POS Terminal 2", time: "3 hours ago" },
-];
+function AlertDetailsModal({ open, loading, alert, onClose, onQuickRestock }) {
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 z-[90] flex items-center justify-center p-4">
+      <div
+        className="absolute inset-0 bg-slate-950/40 backdrop-blur-[2px]"
+        onClick={onClose}
+      />
+
+      <div className="relative w-full max-w-lg rounded-3xl border border-slate-200/70 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-2xl">
+        <div className="px-6 py-5 border-b border-slate-200/70 dark:border-slate-700">
+          <div className="text-[18px] font-extrabold text-slate-900 dark:text-slate-100">
+            Alert Details
+          </div>
+          <div className="mt-1 text-[13px] text-slate-500 dark:text-slate-400">
+            View detailed stock alert information.
+          </div>
+        </div>
+
+        <div className="px-6 py-5">
+          {loading ? (
+            <div className="py-10 text-center text-[13px] text-slate-500 dark:text-slate-400">
+              Loading details...
+            </div>
+          ) : !alert ? (
+            <div className="py-10 text-center text-[13px] text-slate-500 dark:text-slate-400">
+              No details available.
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-slate-800 overflow-hidden grid place-items-center">
+                  {alert.product?.image ? (
+                    <img
+                      src={alert.product.image}
+                      alt={alert.product?.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-[20px]">📦</span>
+                  )}
+                </div>
+
+                <div>
+                  <div className="text-[15px] font-bold text-slate-900 dark:text-slate-100">
+                    {alert.product?.name || "Unknown Product"}
+                  </div>
+                  <div className="text-[12px] text-slate-500 dark:text-slate-400">
+                    SKU: {alert.product?.sku || "—"}
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="rounded-2xl border border-slate-200/70 dark:border-slate-700 p-4">
+                  <div className="text-[11px] uppercase font-bold text-slate-500 dark:text-slate-400">
+                    Alert Type
+                  </div>
+                  <div className="mt-1 text-[14px] font-semibold text-slate-900 dark:text-slate-100">
+                    {alert.alertType === "out_of_stock" ? "Out of Stock" : "Low Stock"}
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border border-slate-200/70 dark:border-slate-700 p-4">
+                  <div className="text-[11px] uppercase font-bold text-slate-500 dark:text-slate-400">
+                    Product Status
+                  </div>
+                  <div className="mt-1 text-[14px] font-semibold text-slate-900 dark:text-slate-100">
+                    {alert.product?.status || "—"}
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border border-slate-200/70 dark:border-slate-700 p-4">
+                  <div className="text-[11px] uppercase font-bold text-slate-500 dark:text-slate-400">
+                    Current Stock
+                  </div>
+                  <div className="mt-1 text-[14px] font-semibold text-slate-900 dark:text-slate-100">
+                    {alert.currentStock}
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border border-slate-200/70 dark:border-slate-700 p-4">
+                  <div className="text-[11px] uppercase font-bold text-slate-500 dark:text-slate-400">
+                    Threshold
+                  </div>
+                  <div className="mt-1 text-[14px] font-semibold text-slate-900 dark:text-slate-100">
+                    {alert.threshold}
+                  </div>
+                </div>
+              </div>
+
+              <div className="text-[12px] text-slate-500 dark:text-slate-400">
+                Created: {new Date(alert.createdAt).toLocaleString()}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="px-6 pb-6 flex justify-end gap-3">
+          <MiniBtn tone="secondary" onClick={onClose}>
+            Close
+          </MiniBtn>
+          {alert?.product ? (
+            <MiniBtn
+              tone="primary"
+              onClick={() => {
+                onQuickRestock(alert);
+                onClose();
+              }}
+            >
+              Quick Restock
+            </MiniBtn>
+          ) : null}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 // ---------- Page ----------
 export default function StockOps() {
@@ -231,8 +309,33 @@ export default function StockOps() {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const productSearchRef = useRef(null);
   const [submitLoading, setSubmitLoading] = useState(false);
+  const [rebuildAlertsLoading, setRebuildAlertsLoading] = useState(false);
   const dispatch = useDispatch();
   const [recentMoves, setRecentMoves] = useState([]);
+  const [confirmModal, setConfirmModal] = useState({
+    open: false,
+    title: "",
+    message: "",
+    confirmText: "Confirm",
+    tone: "primary",
+    onConfirm: null,
+  });
+
+  const [alerts, setAlerts] = useState([]);
+  const [alertsLoading, setAlertsLoading] = useState(false);
+  const [alertsPagination, setAlertsPagination] = useState({
+    page: 1,
+    limit: 4,
+    total: 0,
+    totalPages: 1,
+    hasMore: false,
+  });
+
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [detailsLoading, setDetailsLoading] = useState(false);
+  const [selectedAlertDetails, setSelectedAlertDetails] = useState(null);
+
+  const [thresholdLoading, setThresholdLoading] = useState(false);
   const [movesLoading, setMovesLoading] = useState(false);
   const navigate = useNavigate();
   const [entry, setEntry] = useState({
@@ -242,6 +345,65 @@ export default function StockOps() {
     date: "",
     notes: "",
   });
+  const openConfirmModal = ({
+    title,
+    message,
+    confirmText = "Confirm",
+    tone = "primary",
+    onConfirm,
+  }) => {
+    setConfirmModal({
+      open: true,
+      title,
+      message,
+      confirmText,
+      tone,
+      onConfirm,
+    });
+  };
+
+  const closeConfirmModal = () => {
+    setConfirmModal((prev) => ({
+      ...prev,
+      open: false,
+      onConfirm: null,
+    }));
+  };
+  const handleRebuildAlerts = async ({ silent = false } = {}) => {
+    try {
+      setRebuildAlertsLoading(true);
+
+      const res = await api.post("/api/admin/stock/alerts/rebuild");
+
+      if (!silent) {
+        dispatch(
+          showToast({
+            type: "success",
+            title: "Alerts Rebuilt",
+            message:
+              res?.data?.message || "Stock alerts rebuilt successfully.",
+          })
+        );
+      }
+
+      await fetchAlerts({ page: 1, append: false });
+    } catch (err) {
+      console.error(err);
+
+      if (!silent) {
+        dispatch(
+          showToast({
+            type: "error",
+            title: "Rebuild Failed",
+            message:
+              err?.response?.data?.message || "Failed to rebuild stock alerts.",
+          })
+        );
+      }
+    } finally {
+      setRebuildAlertsLoading(false);
+    }
+  };
 
   const debouncedProductQuery = useDebounce(entry.query, 350);
   const fetchRecentMoves = async () => {
@@ -263,7 +425,101 @@ export default function StockOps() {
   useEffect(() => {
     fetchRecentMoves();
   }, []);
+  const fetchAlerts = async ({ page = 1, append = false } = {}) => {
+    try {
+      setAlertsLoading(true);
 
+      const res = await api.get("/api/admin/stock/alerts", {
+        params: { page, limit: 4 },
+      });
+
+      const incoming = res.data.alerts || [];
+
+      setAlerts((prev) => (append ? [...prev, ...incoming] : incoming));
+
+      setAlertsPagination({
+        page: res.data.pagination?.page || 1,
+        limit: res.data.pagination?.limit || 4,
+        total: res.data.pagination?.total || 0,
+        totalPages: res.data.pagination?.totalPages || 1,
+        hasMore: res.data.pagination?.hasMore || false,
+      });
+    } catch (err) {
+      console.error(err);
+      setAlerts([]);
+    } finally {
+      setAlertsLoading(false);
+    }
+  };
+  useEffect(() => {
+    handleRebuildAlerts({ silent: true });
+  }, []);
+  const handleLoadMoreAlerts = async () => {
+    if (!alertsPagination.hasMore || alertsLoading) return;
+
+    await fetchAlerts({
+      page: alertsPagination.page + 1,
+      append: true,
+    });
+  };
+  const handleQuickRestock = (alert) => {
+    if (!alert?.product) return;
+
+    const threshold = Number(alert.threshold || alert.product.lowStockThreshold || 10);
+    const currentStock = Number(alert.currentStock || alert.product.stock || 0);
+
+    const suggestedQty = Math.max(threshold - currentStock + 1, 1);
+
+    setMode("in");
+    setSelectedProduct({
+      _id: alert.product._id,
+      name: alert.product.name,
+      sku: alert.product.sku,
+      stock: alert.product.stock,
+      lowStockThreshold: alert.product.lowStockThreshold,
+    });
+
+    setEntry((prev) => ({
+      ...prev,
+      query: alert.product.name,
+      qty: String(suggestedQty),
+    }));
+
+    dispatch(
+      showToast({
+        type: "info",
+        title: "Quick Restock Ready",
+        message: `${alert.product.name} selected with suggested quantity ${suggestedQty}.`,
+      })
+    );
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  };
+  const handleViewAlertDetails = async (alertId) => {
+    try {
+      setDetailsLoading(true);
+      setDetailsOpen(true);
+
+      const res = await api.get(`/api/admin/stock/alerts/${alertId}`);
+      setSelectedAlertDetails(res.data.alert || null);
+    } catch (err) {
+      console.error(err);
+      setSelectedAlertDetails(null);
+
+      dispatch(
+        showToast({
+          type: "error",
+          title: "Details Failed",
+          message: err?.response?.data?.message || "Unable to load alert details.",
+        })
+      );
+    } finally {
+      setDetailsLoading(false);
+    }
+  };
   useEffect(() => {
     const fetchSuggestions = async () => {
       const q = entry.query.trim();
@@ -308,6 +564,43 @@ export default function StockOps() {
     document.addEventListener("mousedown", handleOutside);
     return () => document.removeEventListener("mousedown", handleOutside);
   }, []);
+  const handleApplyGlobalThreshold = async () => {
+    try {
+      setThresholdLoading(true);
+
+      const res = await api.patch("/api/low-stock-threshold", {
+        lowStockThreshold: globalMin,
+      });
+
+      dispatch(
+        showToast({
+          type: "success",
+          title: "Threshold Updated",
+          message:
+            res?.data?.message ||
+            `Low stock threshold set to ${globalMin} for all products.`,
+        })
+      );
+      await fetchAlerts({ page: 1, append: false });
+      // optional refresh if connected
+      // await fetchStats();
+      // await fetchAlerts();
+    } catch (err) {
+      console.error(err);
+
+      dispatch(
+        showToast({
+          type: "error",
+          title: "Update Failed",
+          message:
+            err?.response?.data?.message ||
+            "Failed to apply low stock threshold.",
+        })
+      );
+    } finally {
+      setThresholdLoading(false);
+    }
+  };
   const handleSelectProduct = (product) => {
     setSelectedProduct(product);
     setEntry((prev) => ({
@@ -333,6 +626,21 @@ export default function StockOps() {
           message: "Please select a product first.",
         })
       );
+      setEntry({
+        query: "",
+        qty: "",
+        supplier: "",
+        date: "",
+        notes: "",
+      });
+      setSelectedProduct(null);
+      setProductResults([]);
+      setShowProductDropdown(false);
+      await Promise.all([
+        fetchRecentMoves(),
+        fetchAlerts({ page: 1, append: false }),
+      ]);
+      
       return;
     }
 
@@ -625,14 +933,32 @@ export default function StockOps() {
                 </div>
 
                 <div className="pt-2">
-                  <button
-                    type="button"
-                    onClick={handleSubmitStock}
-                    disabled={submitLoading}
+                 <button
+                    type="button"  
                     className="w-full h-11 rounded-2xl text-[13px] font-semibold
                               bg-indigo-600 text-white hover:bg-indigo-700 transition
                               shadow-sm inline-flex items-center justify-center gap-2
                               disabled:opacity-60"
+                    onClick={() =>
+                      openConfirmModal({
+                        title: mode === "in" ? "Confirm Stock In" : "Confirm Stock Out",
+                        message:
+                          mode === "in"
+                            ? `Add ${entry.qty || 0} units to ${
+                                selectedProduct?.name || "this product"
+                              }?`
+                            : `Remove ${entry.qty || 0} units from ${
+                                selectedProduct?.name || "this product"
+                              }?`,
+                        confirmText: mode === "in" ? "Complete Stock In" : "Complete Stock Out",
+                        tone: mode === "in" ? "primary" : "warning",
+                        onConfirm: async () => {
+                          closeConfirmModal();
+                          await handleSubmitStock();
+                        },
+                      })
+                    }
+                    disabled={submitLoading}
                   >
                     <BadgeCheck size={16} />
                     {submitLoading
@@ -709,7 +1035,7 @@ export default function StockOps() {
                     </div>
                   ))
                 )}
-</div>
+              </div>
 
               <div className="pt-4 flex justify-center">
                 <button
@@ -756,80 +1082,147 @@ export default function StockOps() {
                   max={50}
                   value={globalMin}
                   onChange={(e) => setGlobalMin(Number(e.target.value))}
-                  className="w-full"
-                />
+                  className="fonest-range w-full"
+                  style={{
+                    "--range-progress": `${((globalMin - 1) / (50 - 1)) * 100}%`,
+                  }}
+                  />
 
                 <div className="text-[11px] text-slate-500 dark:text-slate-400">
                   Note: Individual product thresholds will override this global setting if configured in
                   the product settings.
                 </div>
-
-                <MiniBtn tone="primary">Apply to All Items</MiniBtn>
+                  <MiniBtn
+                    tone="primary"
+                    onClick={() =>
+                      openConfirmModal({
+                        title: "Apply Stock Rule",
+                        message: `Apply minimum stock threshold of ${globalMin} units to all products?`,
+                        confirmText: "Apply to All",
+                        tone: "primary",
+                        onConfirm: async () => {
+                          closeConfirmModal();
+                          await handleApplyGlobalThreshold();
+                        },
+                      })
+                    }
+                    disabled={thresholdLoading}
+                  >
+                    Apply to All Items
+                  </MiniBtn>
               </div>
             </Card>
 
             {/* Stock Alerts */}
-            <Card
+           <Card
               title={
                 <div className="flex items-center gap-2">
                   Stock Alerts <span className="text-rose-600 dark:text-rose-300">●</span>
                 </div>
               }
-              subtitle="Mark all read"
+              subtitle="Live low stock and out of stock alerts"
+              right={
+                <MiniBtn
+                  tone="secondary"
+                  onClick={() => handleRebuildAlerts()}
+                  disabled={rebuildAlertsLoading}
+                >
+                  {rebuildAlertsLoading ? "Rebuilding..." : "Rebuild Alerts"}
+                </MiniBtn>
+              }
             >
               <div className="space-y-3">
-                {alertsSeed.map((a) => (
-                  <div
-                    key={a.id}
-                    className={[
-                      "rounded-2xl border p-3",
-                      "border-slate-200/70 dark:border-slate-700 bg-white dark:bg-slate-900",
-                    ].join(" ")}
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-slate-800 grid place-items-center text-[18px]">
-                          {a.img}
+                {alertsLoading && alerts.length === 0 ? (
+                  <div className="text-center py-8 text-[13px] text-slate-500 dark:text-slate-400">
+                    Loading alerts...
+                  </div>
+                ) : alerts.length === 0 ? (
+                  <div className="text-center py-8 text-[13px] text-slate-500 dark:text-slate-400">
+                    No stock alerts found.
+                  </div>
+                ) : (
+                  alerts.map((a) => {
+                    const isOut = a.alertType === "out_of_stock";
+                    const tone = isOut ? "red" : "amber";
+                    const label = isOut ? "Out of Stock" : "Low Stock";
+
+                    return (
+                      <div
+                        key={a._id}
+                        className="rounded-2xl border p-3 border-slate-200/70 dark:border-slate-700 bg-white dark:bg-slate-900"
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-slate-800 overflow-hidden grid place-items-center">
+                              {a.product?.image ? (
+                                <img
+                                  src={a.product.image}
+                                  alt={a.product?.name}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <span className="text-[18px]">📦</span>
+                              )}
+                            </div>
+
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <Pill tone={tone}>{label}</Pill>
+                              </div>
+
+                              <div className="mt-1 text-[12px] font-semibold text-slate-900 dark:text-slate-100">
+                                {a.product?.name || "Unknown Product"}
+                              </div>
+
+                              <div className="text-[11px] text-slate-500 dark:text-slate-400">
+                                Current: <span className="font-semibold">{a.currentStock}</span>
+                                {" • "}
+                                Threshold: <span className="font-semibold">{a.threshold}</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => handleViewAlertDetails(a._id)}
+                            className="w-9 h-9 rounded-xl border border-slate-200/70 dark:border-slate-700
+                                      bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 transition
+                                      grid place-items-center"
+                            title="View Details"
+                          >
+                            <ChevronRight size={16} className="text-slate-600 dark:text-slate-200" />
+                          </button>
                         </div>
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <Pill tone={a.tone}>{a.status}</Pill>
-                          </div>
-                          <div className="mt-1 text-[12px] font-semibold text-slate-900 dark:text-slate-100">
-                            {a.name}
-                          </div>
-                          <div className="text-[11px] text-slate-500 dark:text-slate-400">
-                            Current: <span className="font-semibold">{a.current}</span>
-                          </div>
+
+                        <div className="mt-3 flex items-center gap-2">
+                          <MiniBtn tone="primary" onClick={() => handleQuickRestock(a)}>
+                            Quick Restock
+                          </MiniBtn>
+                          <MiniBtn tone="secondary" onClick={() => handleViewAlertDetails(a._id)}>
+                            View Details
+                          </MiniBtn>
                         </div>
                       </div>
+                    );
+                  })
+                )}
 
-                      <button
-                        type="button"
-                        className="w-9 h-9 rounded-xl border border-slate-200/70 dark:border-slate-700
-                                   bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 transition
-                                   grid place-items-center"
-                        title="More"
-                      >
-                        <ChevronRight size={16} className="text-slate-600 dark:text-slate-200" />
-                      </button>
-                    </div>
-
-                    <div className="mt-3 flex items-center gap-2">
-                      <MiniBtn tone="primary">Quick Restock</MiniBtn>
-                      <MiniBtn tone="secondary">View Details</MiniBtn>
-                    </div>
+                {alertsPagination.hasMore ? (
+                  <div className="pt-2 text-center">
+                    <button
+                      type="button"
+                      onClick={handleLoadMoreAlerts}
+                      disabled={alertsLoading}
+                      className="text-[12px] font-semibold text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-slate-100 transition disabled:opacity-60"
+                    >
+                      {alertsLoading ? "Loading..." : "Load more alerts"}
+                    </button>
                   </div>
-                ))}
-
-                <div className="pt-2 text-center">
-                  <button
-                    type="button"
-                    className="text-[12px] font-semibold text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-slate-100 transition"
-                  >
-                    Load more alerts ↑
-                  </button>
-                </div>
+                ) : alerts.length > 0 ? (
+                  <div className="pt-2 text-center text-[11px] text-slate-400 dark:text-slate-500">
+                    No more alerts
+                  </div>
+                ) : null}
               </div>
             </Card>
 
@@ -853,6 +1246,26 @@ export default function StockOps() {
           </div>
         </div>
       </div>
+      <AlertDetailsModal
+        open={detailsOpen}
+        loading={detailsLoading}
+        alert={selectedAlertDetails}
+        onClose={() => {
+          setDetailsOpen(false);
+          setSelectedAlertDetails(null);
+        }}
+        onQuickRestock={handleQuickRestock}
+      />
+      <ConfirmModal
+        open={confirmModal.open}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        confirmText={confirmModal.confirmText}
+        tone={confirmModal.tone}
+        loading={thresholdLoading || submitLoading}
+        onClose={closeConfirmModal}
+        onConfirm={confirmModal.onConfirm}
+      />
     </AdminLayout>
   );
 }

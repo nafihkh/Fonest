@@ -17,9 +17,127 @@
   src: url("./assets/fonts/Inter-Regular.ttf") format("truetype");
 }
 
-/* Theme Extension */
 @theme {
   --font-baloo: "BalooCustom", cursive;
   --font-archivo: "Archivo", sans-serif;
   --font-inter: "Inter", sans-serif;
+}
+.fonest-range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 8px;
+  border-radius: 9999px;
+  outline: none;
+  cursor: pointer;
+  background: linear-gradient(
+    to right,
+    rgb(59 130 246) 0%,
+    rgb(59 130 246) var(--range-progress, 30%),
+    rgb(191 219 254) var(--range-progress, 30%),
+    rgb(191 219 254) 100%
+  );
+}
+
+/* Webkit track */
+.fonest-range::-webkit-slider-runnable-track {
+  height: 8px;
+  border-radius: 9999px;
+  background: transparent;
+  border: none;
+}
+
+/* Webkit thumb */
+.fonest-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  margin-top: -5px;
+  border-radius: 9999px;
+  background: #ffffff;
+  border: 2px solid rgb(59 130 246);
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.18);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.fonest-range:hover::-webkit-slider-thumb {
+  transform: scale(1.05);
+}
+
+.fonest-range:active::-webkit-slider-thumb {
+  transform: scale(1.08);
+}
+
+/* Firefox track */
+.fonest-range::-moz-range-track {
+  height: 8px;
+  border-radius: 9999px;
+  background: rgb(191 219 254);
+  border: none;
+}
+
+/* Firefox progress */
+.fonest-range::-moz-range-progress {
+  height: 8px;
+  border-radius: 9999px;
+  background: rgb(59 130 246);
+}
+
+/* Firefox thumb */
+.fonest-range::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 9999px;
+  background: #ffffff;
+  border: 2px solid rgb(59 130 246);
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.18);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.fonest-range:hover::-moz-range-thumb {
+  transform: scale(1.05);
+}
+
+.fonest-range:active::-moz-range-thumb {
+  transform: scale(1.08);
+}
+
+/* Dark theme */
+.dark .fonest-range {
+  background: linear-gradient(
+    to right,
+    rgb(96 165 250) 0%,
+    rgb(96 165 250) var(--range-progress, 30%),
+    rgb(30 41 59) var(--range-progress, 30%),
+    rgb(30 41 59) 100%
+  );
+}
+
+.dark .fonest-range::-webkit-slider-thumb {
+  background: #ffffff;
+  border: 2px solid rgb(96 165 250);
+  box-shadow: 0 1px 6px rgba(2, 6, 23, 0.4);
+}
+
+.dark .fonest-range::-moz-range-track {
+  background: rgb(30 41 59);
+}
+
+.dark .fonest-range::-moz-range-progress {
+  background: rgb(96 165 250);
+}
+
+.dark .fonest-range::-moz-range-thumb {
+  background: #ffffff;
+  border: 2px solid rgb(96 165 250);
+  box-shadow: 0 1px 6px rgba(2, 6, 23, 0.4);
+}
+.dark input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1) brightness(2);
+  opacity: 1;
+  cursor: pointer;
+}
+.dark input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  filter: invert(1) brightness(2) drop-shadow(0 0 2px rgba(255,255,255,0.4));
 }
