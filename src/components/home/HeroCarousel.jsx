@@ -1,6 +1,8 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useNa } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowLeft, ArrowRight, User } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+
 
 /**
  * ✅ Put images in: /public/products/...
@@ -47,7 +49,7 @@ const SLIDES = [
 export default function HeroCarousel() {
   const slides = useMemo(() => SLIDES, []);
   const [index, setIndex] = useState(0);
-
+  const navigate = useNavigate();
   // For the “radial gradient opacity dip” effect:
   const [bgA, setBgA] = useState(slides[0].gradient);
   const [bgB, setBgB] = useState(slides[0].gradient);
@@ -136,7 +138,8 @@ export default function HeroCarousel() {
               <button
                 key={t}
                 className="rounded-full px-7 py-4 text-lg hover:bg-white hover:text-black transition"
-              >
+                onClick={() => navigate(`/${t.toLocaleLowerCase()}`)}
+                >
                 {t}
               </button>
             ))}

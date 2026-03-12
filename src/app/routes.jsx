@@ -3,7 +3,8 @@ import App from "./App";
 
 import AuthPage from "../pages/auth/AuthPage";
 import CompleteProfile from "../pages/auth/CompleteProfile";
-import Home from "../pages/Home";
+import Home from "../pages/customer/Home";
+import Shop from "../pages/customer/Shop"
 import AdminDashboard from "../pages/admin/AdminDashboard";
 import ProtectedRoute from "../components/ProtectedRoute";
 import AddProduct from "../pages/admin/AddProduct";
@@ -149,6 +150,14 @@ const router = createBrowserRouter([
         element: (
           <ProtectedRoute role="customer">
             <Home />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/shop",
+        element: (
+          <ProtectedRoute role="customer">
+            <Shop />
           </ProtectedRoute>
         ),
       },

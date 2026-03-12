@@ -21,6 +21,7 @@ import {
   BadgeCheck,
   ChevronRight,
   Loader2,
+  Truck
 } from "lucide-react";
 
 // ---------- small UI helpers ----------
@@ -45,13 +46,13 @@ function StatTile({ title, value, icon: Icon, badge, badgeTone = "neutral" }) {
         </div>
 
         <div className="flex items-center gap-2">
-          {badge ? (
-            <span className={`text-[11px] font-bold px-2 py-1 rounded-full ${tone}`}>
+          
+          <span className={`w-10 h-10 rounded-2xl  ${tone ||  "bg-slate-100 dark:bg-slate-800"} grid place-items-center`}>
+            {badge ? (
+            <span className={`text-[11px] font-bold rounded-full`}>
               {badge}
             </span>
-          ) : null}
-          <span className="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-slate-800 grid place-items-center">
-            <Icon size={18} className="text-slate-700 dark:text-slate-200" />
+          ) :  <Icon size={18} className="text-slate-700 dark:text-slate-200" />} 
           </span>
         </div>
       </div>
@@ -307,6 +308,18 @@ export default function StockOps() {
   const [productSearchLoading, setProductSearchLoading] = useState(false);
   const [showProductDropdown, setShowProductDropdown] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [rulePanelOpen, setRulePanelOpen] = useState(false);
+  const [globalMax, setGlobalMax] = useState(50);
+  const [tempGlobalMax, setTempGlobalMax] = useState("50");
+  const rulePanelRef = useRef(null);
+  const [stats, setStats] = useState({
+    totalStockValue: 0,
+    todayStockIn: 0,
+    todayStockOut: 0,
+    lowStockItems: 0,
+    outOfStockItems: 0,
+  });
+  const [statsLoading, setStatsLoading] = useState(false);
   const productSearchRef = useRef(null);
   const [submitLoading, setSubmitLoading] = useState(false);
   const [rebuildAlertsLoading, setRebuildAlertsLoading] = useState(false);
@@ -404,7 +417,40 @@ export default function StockOps() {
       setRebuildAlertsLoading(false);
     }
   };
+  const fetchStats = async () => {
+    try {
+      setStatsLoading(true);
 
+      const res = await api.get("/api/admin/stock/stats");
+      setStats(res.data.stats || {});
+    } catch (err) {
+      console.error(err);
+      setStats({
+        totalStockValue: 0,
+        todayStockIn: 0,
+        todayStockOut: 0,
+        lowStockItems: 0,
+        outOfStockItems: 0,
+      });
+    } finally {
+      setStatsLoading(false);
+    }
+  };
+  useEffect(() => {
+    fetchStats();
+  }, []);
+  useEffect(() => {
+    if (!rulePanelOpen) return;
+
+    const handleOutside = (e) => {
+      if (rulePanelRef.current && !rulePanelRef.current.contains(e.target)) {
+        setRulePanelOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleOutside);
+    return () => document.removeEventListener("mousedown", handleOutside);
+  }, [rulePanelOpen]);
   const debouncedProductQuery = useDebounce(entry.query, 350);
   const fetchRecentMoves = async () => {
     try {
@@ -454,6 +500,66 @@ export default function StockOps() {
   useEffect(() => {
     handleRebuildAlerts({ silent: true });
   }, []);
+  const openQuickRestockConfirm = (alert) => {
+  if (!alert?.product) return;
+
+  const threshold = Number(alert.threshold || alert.product.lowStockThreshold || 10);
+  const currentStock = Number(alert.currentStock || alert.product.stock || 0);
+  const buffer = 5;
+  const suggestedQty = Math.max(threshold + buffer - currentStock, 1);
+
+  openConfirmModal({
+      title: "Confirm Quick Restock",
+      message: `Prepare quick restock for ${alert.product.name} with suggested quantity ${suggestedQty} units?`,
+      confirmText: "Prepare Restock",
+      tone: "primary",
+      onConfirm: async () => {
+        closeConfirmModal();
+        handleQuickRestock(alert);
+      },
+    });
+  };
+  const openRulePanel = () => {
+  setTempGlobalMax(String(globalMax));
+  setRulePanelOpen(true);
+};
+
+const handleApplyGlobalMax = () => {
+    const nextMax = Number(tempGlobalMax);
+
+    if (!Number.isFinite(nextMax) || nextMax < 5) {
+      dispatch(
+        showToast({
+          type: "warning",
+          title: "Invalid Max Unit",
+          message: "Maximum unit must be at least 5.",
+        })
+      );
+      return;
+    }
+
+    if (nextMax < globalMin) {
+      dispatch(
+        showToast({
+          type: "warning",
+          title: "Max Too Small",
+          message: "Maximum unit cannot be less than current minimum value.",
+        })
+      );
+      return;
+    }
+
+    setGlobalMax(nextMax);
+    setRulePanelOpen(false);
+
+    dispatch(
+      showToast({
+        type: "success",
+        title: "Rule Updated",
+        message: `Slider maximum updated to ${nextMax} units.`,
+      })
+    );
+  };
   const handleLoadMoreAlerts = async () => {
     if (!alertsPagination.hasMore || alertsLoading) return;
 
@@ -468,9 +574,11 @@ export default function StockOps() {
     const threshold = Number(alert.threshold || alert.product.lowStockThreshold || 10);
     const currentStock = Number(alert.currentStock || alert.product.stock || 0);
 
-    const suggestedQty = Math.max(threshold - currentStock + 1, 1);
+    const buffer = 5;
+    const suggestedQty = Math.max(threshold + buffer - currentStock, 1);
 
     setMode("in");
+
     setSelectedProduct({
       _id: alert.product._id,
       name: alert.product.name,
@@ -483,13 +591,20 @@ export default function StockOps() {
       ...prev,
       query: alert.product.name,
       qty: String(suggestedQty),
+      supplier: prev.supplier || "Warehouse Refill",
+      date: new Date().toISOString().split("T")[0],
+      notes: `Quick restock triggered from ${
+        alert.alertType === "out_of_stock" ? "out of stock" : "low stock"
+      } alert`,
     }));
+
+    setShowProductDropdown(false);
 
     dispatch(
       showToast({
         type: "info",
         title: "Quick Restock Ready",
-        message: `${alert.product.name} selected with suggested quantity ${suggestedQty}.`,
+        message: `${alert.product.name} prepared with suggested quantity ${suggestedQty}.`,
       })
     );
 
@@ -639,6 +754,7 @@ export default function StockOps() {
       await Promise.all([
         fetchRecentMoves(),
         fetchAlerts({ page: 1, append: false }),
+        fetchStats(),
       ]);
       
       return;
@@ -743,20 +859,32 @@ export default function StockOps() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <StatTile
             title="Total Stock Value"
-            value="$248,500"
+            value={statsLoading ? "..." : `₹${Number(stats.totalStockValue || 0).toLocaleString("en-IN")}`}
             icon={TrendingDown}
-            badge={<ArrowUpRight size={14} />}
+            badge={<ArrowUpRight size={18} />}
             badgeTone="green"
           />
+
           <StatTile
-            title="Total Units (Today)"
-            value="142"
+            title="Stock In Today"
+            value={statsLoading ? "..." : Number(stats.todayStockIn || 0).toLocaleString("en-IN")}
             icon={PackagePlus}
-            badge={<ArrowDownRight size={14} />}
-            badgeTone="red"
+            badge={<ArrowUpRight size={18} />}
+            badgeTone="green"
           />
-          <StatTile title="Active Suppliers" value="24" icon={Users} />
-          <StatTile title="Low Stock Items" value="12" icon={AlertTriangle} badge="⚠" badgeTone="amber" />
+
+          <StatTile
+            title="Stock Out Today"
+            value={statsLoading ? "..." : Number(stats.todayStockOut || 0).toLocaleString("en-IN")}
+            icon={Truck}
+          />
+
+          <StatTile
+            title="Low Stock Items"
+            value={statsLoading ? "..." : Number(stats.lowStockItems || 0).toLocaleString("en-IN")}
+            icon={AlertTriangle}
+            badge={<AlertTriangle size={18} className="text-[#de3b40]" />}
+          />
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-[1fr_360px] gap-6">
@@ -1056,16 +1184,61 @@ export default function StockOps() {
               title="Initial Stock Rules"
               subtitle="Stock threshold config"
               right={
-                <button
-                  type="button"
-                  className="h-9 px-3 rounded-xl text-[12px] font-semibold
-                             border border-slate-200/70 dark:border-slate-700
-                             bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200
-                             hover:bg-slate-50 dark:hover:bg-slate-800 transition inline-flex items-center gap-2"
-                >
-                  <SlidersHorizontal size={14} />
-                  Settings
-                </button>
+                <div className="relative" ref={rulePanelRef}>
+                  <button
+                    type="button"
+                    onClick={() => setRulePanelOpen((p) => !p)}
+                    className="h-9 px-3 rounded-xl text-[12px] font-semibold
+                              border border-slate-200/70 dark:border-slate-700
+                              bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200
+                              hover:bg-slate-50 dark:hover:bg-slate-800 transition inline-flex items-center gap-2"
+                  >
+                    <SlidersHorizontal size={14} />
+                    Settings
+                  </button>
+
+                  {rulePanelOpen ? (
+                    <div
+                      className="absolute right-0 top-11 z-40 w-[280px] rounded-2xl
+                                border border-slate-200/70 dark:border-slate-700
+                                bg-white dark:bg-slate-900 shadow-[0_12px_30px_rgba(2,6,23,0.12)] p-4"
+                    >
+                      <div className="text-[13px] font-extrabold text-slate-900 dark:text-slate-100">
+                        Slider Settings
+                      </div>
+                      <div className="mt-1 text-[12px] text-slate-500 dark:text-slate-400">
+                        Adjust the maximum unit range for the stock rule slider.
+                      </div>
+
+                      <div className="mt-4">
+                        <Label>Maximum Units</Label>
+                        <div className="mt-2">
+                          <TextInput
+                            type="number"
+                            min={5}
+                            className="no-number-arrows"
+                            value={tempGlobalMax}
+                            onChange={(e) => setTempGlobalMax(e.target.value)}
+                            placeholder="Enter max units"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="mt-4 text-[11px] text-slate-500 dark:text-slate-400">
+                        Current slider range: 1 to <span className="font-semibold">{globalMax}</span>
+                      </div>
+
+                      <div className="mt-4 flex items-center justify-end gap-2">
+                        <MiniBtn tone="secondary" onClick={() => setRulePanelOpen(false)}>
+                          Cancel
+                        </MiniBtn>
+                        <MiniBtn tone="primary" onClick={handleApplyGlobalMax}>
+                          Apply
+                        </MiniBtn>
+                      </div>
+                    </div>
+                  ) : null}
+                </div>
               }
             >
               <div className="space-y-4">
@@ -1073,20 +1246,20 @@ export default function StockOps() {
                   <div className="text-[12px] font-semibold text-slate-700 dark:text-slate-200">
                     Global Minimum
                   </div>
-                  <Pill>{globalMin} units</Pill>
+                  <Pill>{globalMin} / {globalMax} units</Pill>
                 </div>
 
                 <input
                   type="range"
                   min={1}
-                  max={50}
+                  max={globalMax}
                   value={globalMin}
                   onChange={(e) => setGlobalMin(Number(e.target.value))}
                   className="fonest-range w-full"
                   style={{
-                    "--range-progress": `${((globalMin - 1) / (50 - 1)) * 100}%`,
+                    "--range-progress": `${((globalMin - 1) / (globalMax - 1)) * 100}%`,
                   }}
-                  />
+                />
 
                 <div className="text-[11px] text-slate-500 dark:text-slate-400">
                   Note: Individual product thresholds will override this global setting if configured in
@@ -1195,9 +1368,9 @@ export default function StockOps() {
                         </div>
 
                         <div className="mt-3 flex items-center gap-2">
-                          <MiniBtn tone="primary" onClick={() => handleQuickRestock(a)}>
-                            Quick Restock
-                          </MiniBtn>
+                         <MiniBtn tone="primary" onClick={() => openQuickRestockConfirm(a)}>
+                          Quick Restock
+                        </MiniBtn>
                           <MiniBtn tone="secondary" onClick={() => handleViewAlertDetails(a._id)}>
                             View Details
                           </MiniBtn>

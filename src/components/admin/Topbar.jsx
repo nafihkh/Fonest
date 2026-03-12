@@ -1,7 +1,6 @@
 import {Search, Bell, Sun, Moon} from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import NotificationToast from "../ui/NotificationToast"; // adjust path if needed
-import { toggleTheme } from "../../theme/theme";
 import { useDispatch, useSelector } from "react-redux";
 export default function Topbar() {
 
@@ -11,7 +10,7 @@ export default function Topbar() {
 const [notifOpen, setNotifOpen] = useState(false);
 const bellRef = useRef(null);
 
-  const handleToggleTheme = () => {
+const handleToggleTheme = () => {
   const next = toggleTheme();   // toggleTheme returns "light" or "dark"
   setTheme(next);
 };
@@ -49,12 +48,6 @@ const toast = useSelector((s) => s.toast);
             message="iPhone 15 Case - Matte Black is below 5 units."
           />
         </div>
-        <button
-          onClick={handleToggleTheme}
-          className="w-10 h-10"
-        >
-          {theme === "dark" ? <Sun size={20}  className="text-slate-100"/> : <Moon size={20} className="dark:text-neutral-900" />}
-        </button>
         <div className="text-neutral-300 text-xl">|</div>
         <div className="flex items-center gap-3 pl-2">
           <div className="text-right leading-tight">

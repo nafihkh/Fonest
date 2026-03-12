@@ -4,7 +4,7 @@ const LOGO =
   "https://res.cloudinary.com/dl0wwvy4j/image/upload/v1771488519/Logo_c07lrq.jpghttps://res.cloudinary.com/dl0wwvy4j/image/upload/v1771488519/Logo_c07lrq.jpg";
 
 const nav = [
-  { label: "Home", to: "/" },
+  { label: "Home", to: "/home" },
   { label: "Shop", to: "/shop" },
   { label: "About", to: "/about" },
   { label: "Contact", to: "/contact" },
