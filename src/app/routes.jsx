@@ -3,8 +3,7 @@ import App from "./App";
 
 import AuthPage from "../pages/auth/AuthPage";
 import CompleteProfile from "../pages/auth/CompleteProfile";
-import Home from "../pages/customer/Home";
-import Shop from "../pages/customer/Shop"
+import Shop from "../pages/customer/Home"
 import AdminDashboard from "../pages/admin/AdminDashboard";
 import ProtectedRoute from "../components/ProtectedRoute";
 import AddProduct from "../pages/admin/AddProduct";
@@ -17,7 +16,11 @@ import ProfitAnalysis from "../pages/admin/ProfitAnalysis";
 import Reports from "../pages/admin/Reports";
 import Settings from "../pages/admin/Settings"
 import StockHistory from "../pages/admin/StockHistory";
-
+import ProductDetails from "../pages/customer/Productdetails";
+import HomePage from "../pages/customer/LandingPage";
+import OrdersEntry from "../pages/enterys/OrdersEntry";
+import ProfileEntry from "../pages/enterys/ProfileEntry"
+import CartEntry from "../pages/enterys/CartEntry";
 
 const router = createBrowserRouter([
   {
@@ -29,7 +32,7 @@ const router = createBrowserRouter([
         path: "/admin",
         element: (
           
-            <ProtectedRoute role="admin" >
+            <ProtectedRoute role="admin">
               <AdminDashboard />
             </ProtectedRoute>
           
@@ -146,18 +149,50 @@ const router = createBrowserRouter([
         ),
       },
       {
-        path: "/home",
+        path: "/",
         element: (
           <ProtectedRoute role="customer">
-            <Home />
+            <HomePage />
           </ProtectedRoute>
         ),
       },
       {
-        path: "/shop",
+        path: "/home",
         element: (
           <ProtectedRoute role="customer">
             <Shop />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/cart",
+        element: (
+          <ProtectedRoute role="customer">
+            <CartEntry />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/purchase-history",
+        element: (
+          <ProtectedRoute role="customer">
+            <OrdersEntry />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/profile",
+        element: (
+          <ProtectedRoute role="customer">
+            <ProfileEntry />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/product-details",
+        element: (
+          <ProtectedRoute role="customer">
+            <ProductDetails />
           </ProtectedRoute>
         ),
       },
