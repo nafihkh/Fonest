@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState, useNa } from "react";
+import React, { useEffect, useMemo, useState, } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowLeft, ArrowRight, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -134,7 +134,7 @@ export default function HeroCarousel() {
           <div className="text-white font-baloo text-2xl tracking-wide">Fonest</div>
 
           <div className="hidden md:flex items-center gap-2 rounded-full bg-black/30 text-white/90 backdrop-blur">
-            {["Home", "Order", "Shop", "Contact"].map((t) => (
+            {["Home", "Shop", "About", "Contact"].map((t) => (
               <button
                 key={t}
                 className="rounded-full px-7 py-4 text-lg hover:bg-white hover:text-black transition"

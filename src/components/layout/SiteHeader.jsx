@@ -13,7 +13,7 @@ const nav = [
 export default function SiteHeader({ cartCount = 3 }) {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-white/80 backdrop-blur-xl shadow-lg">
-      <div className="max-w-[1400px] mx-auto px-6 py-4">
+      <div className="max-w-[1600px] mx-auto px-6 py-4">
         <div className="flex items-center justify-between">
           <Link className="flex items-center gap-3 group" to="/">
             <img
@@ -64,13 +64,13 @@ export default function SiteHeader({ cartCount = 3 }) {
               )}
             </Link>
 
-            <button
+            <Link
               className="p-2 hover:bg-red-50 rounded-full transition-all duration-300 cursor-pointer"
               aria-label="Menu"
-              type="button"
+              to="/purchase-history"
             >
               <i className="ri-file-list-3-line text-[22px] text-gray-700" />
-            </button>
+            </Link>
 
             <Link
               to="/profile"
