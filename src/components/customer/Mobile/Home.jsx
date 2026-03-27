@@ -15,7 +15,6 @@ import {
   Star,
   MapPin,
 } from "lucide-react";
-import MobileLayout from "../../layout/MobileLayout";
 
 
 const categories = [
@@ -158,33 +157,19 @@ function ProductCard({ product }) {
   );
 }
 
-export default function MobileHomePage({
+ export default function MobileHomePage({
   products = [],
-  pagination,
-  brands = [],
+  deals = [],
+  recommendedProducts = [],
   categories = [],
   loading = false,
   error = "",
-
-  search,
-  setSearch,
-
-  selectedCategory,
-  setSelectedCategory,
-
-  selectedBrand,
-  setSelectedBrand,
-
-  priceRange,
-  setPriceRange,
-
-  clearFilters,
-  handleSortChange,
+  onAddToCart = () => {},
 }) {
 
  if (loading) {
   return (
-    <MobileLayout>
+    <>
       {/* Address Skeleton */}
       <div className="mb-5 rounded-2xl border border-blue-100 bg-white px-4 py-4 shadow-sm md:px-5 md:py-5">
         <div className="flex items-center justify-between gap-3">
@@ -252,21 +237,21 @@ export default function MobileHomePage({
           ))}
         </div>
       </section>
-    </MobileLayout>
+    </>
   );
 }
 if (error) {
   return (
-    <MobileLayout>
+    <>
       <EmptyState
         title="Failed to load home data"
         message={error || "Please try again later."}
       />
-    </MobileLayout>
+    </>
   );
 }
   return (
-    <MobileLayout>
+    <>
       {/* Address */}
       <div className="mb-5 rounded-2xl border border-blue-100 bg-white px-4 py-4 shadow-sm md:px-5 md:py-5">
         <div className="flex items-center justify-between gap-3">
@@ -351,7 +336,7 @@ if (error) {
         <SectionHeader title="Recommended for You" actionText="Filter" />
 
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
-          {recommendedProducts.map((product) => (
+          {products.map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}
         </div>
@@ -360,6 +345,6 @@ if (error) {
           See All Products
         </button>
       </section>
-    </MobileLayout>
+    </>
   );
-}
+} 
