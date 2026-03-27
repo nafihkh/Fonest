@@ -3,7 +3,7 @@ import App from "./App";
 
 import AuthPage from "../pages/auth/AuthPage";
 import CompleteProfile from "../pages/auth/CompleteProfile";
-import Shop from "../pages/customer/Home"
+import Home from "../pages/customer/Home"
 import AdminDashboard from "../pages/admin/AdminDashboard";
 import ProtectedRoute from "../components/ProtectedRoute";
 import AddProduct from "../pages/admin/AddProduct";
@@ -17,10 +17,14 @@ import Reports from "../pages/admin/Reports";
 import Settings from "../pages/admin/Settings"
 import StockHistory from "../pages/admin/StockHistory";
 import ProductDetails from "../pages/customer/Productdetails";
-import HomePage from "../pages/customer/LandingPage";
+import LandingPage from "../pages/customer/LandingPage";
 import OrdersEntry from "../pages/enterys/OrdersEntry";
 import ProfileEntry from "../pages/enterys/ProfileEntry"
 import CartEntry from "../pages/enterys/CartEntry";
+import SearchResultsPage from "../pages/customer/SearchResultsPage";
+import BuyNowPage from "../pages/customer/BuyNowPage";
+import OrderPlacedPage from "../pages/customer/OrderPlacedPage";
+import PurchaseHistory from "../pages/customer/PurchaseHistory"
 
 const router = createBrowserRouter([
   {
@@ -152,7 +156,15 @@ const router = createBrowserRouter([
         path: "/",
         element: (
           <ProtectedRoute role="customer">
-            <HomePage />
+            <LandingPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/search",
+        element: (
+          <ProtectedRoute role="customer">
+            <SearchResultsPage />
           </ProtectedRoute>
         ),
       },
@@ -160,7 +172,7 @@ const router = createBrowserRouter([
         path: "/home",
         element: (
           <ProtectedRoute role="customer">
-            <Shop />
+            <Home />
           </ProtectedRoute>
         ),
       },
@@ -176,7 +188,7 @@ const router = createBrowserRouter([
         path: "/purchase-history",
         element: (
           <ProtectedRoute role="customer">
-            <OrdersEntry />
+            <PurchaseHistory />
           </ProtectedRoute>
         ),
       },
@@ -189,13 +201,30 @@ const router = createBrowserRouter([
         ),
       },
       {
-        path: "/product-details",
+        path: "/product/:id",
         element: (
           <ProtectedRoute role="customer">
             <ProductDetails />
-          </ProtectedRoute>
+          </ProtectedRoute> 
         ),
       },
+      {
+        path: "/buy-now/:id",
+        element: (
+          <ProtectedRoute role="customer">
+            <BuyNowPage />
+          </ProtectedRoute> 
+        ),
+      },
+      {
+        path: "/order-placed/:orderId",
+        element: (
+          <ProtectedRoute role="customer">
+            <OrderPlacedPage />
+          </ProtectedRoute>
+        ),
+      }
+      
     ],
   },
 ]);
