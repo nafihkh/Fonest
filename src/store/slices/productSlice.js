@@ -93,6 +93,15 @@ const initialState = {
   storeBrands: [],
   storeCategories: [],
   byId: {},
+
+  shopSearch: "",
+  shopSelectedCategory: "",
+  shopSelectedBrand: "",
+  shopPriceRange: 200000,
+  shopSortBy: "createdAt",
+  shopOrder: "desc",
+  shopPage: 1,
+
   loadingHome: false,
   loadingShop: false,
   loadingDetails: false,
@@ -101,7 +110,7 @@ const initialState = {
   errorShop: "",
   errorDetails: "",
   errorFilters: "",
-}
+};
 
 const productSlice = createSlice({
   name: "products",
@@ -112,8 +121,49 @@ const productSlice = createSlice({
       state.errorShop = "";
       state.errorDetails = "";
     },
+
     clearShopProducts: (state) => {
       state.shopList = [];
+    },
+
+    setShopSearch: (state, action) => {
+      state.shopSearch = action.payload;
+      state.shopPage = 1;
+    },
+
+    setShopSelectedCategory: (state, action) => {
+      state.shopSelectedCategory = action.payload;
+      state.shopPage = 1;
+    },
+
+    setShopSelectedBrand: (state, action) => {
+      state.shopSelectedBrand = action.payload;
+      state.shopPage = 1;
+    },
+
+    setShopPriceRange: (state, action) => {
+      state.shopPriceRange = action.payload;
+      state.shopPage = 1;
+    },
+
+    setShopSort: (state, action) => {
+      state.shopSortBy = action.payload.sortBy;
+      state.shopOrder = action.payload.order;
+      state.shopPage = 1;
+    },
+
+    setShopPage: (state, action) => {
+      state.shopPage = action.payload;
+    },
+
+    clearShopFilters: (state) => {
+      state.shopSearch = "";
+      state.shopSelectedCategory = "";
+      state.shopSelectedBrand = "";
+      state.shopPriceRange = 200000;
+      state.shopSortBy = "createdAt";
+      state.shopOrder = "desc";
+      state.shopPage = 1;
     },
   },
   extraReducers: (builder) => {
@@ -181,7 +231,17 @@ const productSlice = createSlice({
   },
 });
 
-export const { clearProductErrors, clearShopProducts } = productSlice.actions;
+export const {
+  clearProductErrors,
+  clearShopProducts,
+  setShopSearch,
+  setShopSelectedCategory,
+  setShopSelectedBrand,
+  setShopPriceRange,
+  setShopSort,
+  setShopPage,
+  clearShopFilters,
+} = productSlice.actions;
 export const selectFeaturedProducts = (state) => state.products.featured;
 export const selectLatestProducts = (state) => state.products.latest;
 export const selectShopProducts = (state) => state.products.shopList;
@@ -199,5 +259,13 @@ export const selectProductsLoadingDetails = (state) =>
 export const selectProductsErrorHome = (state) => state.products.errorHome;
 export const selectProductsErrorShop = (state) => state.products.errorShop;
 export const selectProductsErrorDetails = (state) => state.products.errorDetails;
+
+export const selectShopSearch = (state) => state.products.shopSearch;
+export const selectShopSelectedCategory = (state) => state.products.shopSelectedCategory;
+export const selectShopSelectedBrand = (state) => state.products.shopSelectedBrand;
+export const selectShopPriceRange = (state) => state.products.shopPriceRange;
+export const selectShopSortBy = (state) => state.products.shopSortBy;
+export const selectShopOrder = (state) => state.products.shopOrder;
+export const selectCurrentShopPage = (state) => state.products.shopPage;  
 
 export default productSlice.reducer;
