@@ -18,13 +18,14 @@ import Settings from "../pages/admin/Settings"
 import StockHistory from "../pages/admin/StockHistory";
 import ProductDetails from "../pages/customer/Productdetails";
 import LandingPage from "../pages/customer/LandingPage";
-import OrdersEntry from "../pages/enterys/OrdersEntry";
-import ProfileEntry from "../pages/enterys/ProfileEntry"
-import CartEntry from "../pages/enterys/CartEntry";
+import ProfilePage from "../pages/customer/Profile"
+import CartPage from "../pages/customer/Cart";
 import SearchResultsPage from "../pages/customer/SearchResultsPage";
 import BuyNowPage from "../pages/customer/BuyNowPage";
 import OrderPlacedPage from "../pages/customer/OrderPlacedPage";
 import PurchaseHistory from "../pages/customer/PurchaseHistory"
+import OrderDetailsPage from "../pages/customer/OrderDetailsPage";
+import UpdateDeliveryInstructions from "../pages/customer/UpdateDeliveryInstructionsPage";
 
 const router = createBrowserRouter([
   {
@@ -180,7 +181,7 @@ const router = createBrowserRouter([
         path: "/cart",
         element: (
           <ProtectedRoute role="customer">
-            <CartEntry />
+            <CartPage />
           </ProtectedRoute>
         ),
       },
@@ -196,7 +197,7 @@ const router = createBrowserRouter([
         path: "/profile",
         element: (
           <ProtectedRoute role="customer">
-            <ProfileEntry />
+            <ProfilePage />
           </ProtectedRoute>
         ),
       },
@@ -223,7 +224,24 @@ const router = createBrowserRouter([
             <OrderPlacedPage />
           </ProtectedRoute>
         ),
-      }
+      },
+      {
+        path: "/orders/:id",
+        element: (
+          <ProtectedRoute role="customer">
+            <OrderDetailsPage />
+          </ProtectedRoute>
+        ),
+      },
+      
+      {
+        path: "/delivery-instructions/:id",
+        element: (
+          <ProtectedRoute role="customer">
+            <UpdateDeliveryInstructions />
+          </ProtectedRoute>
+        ),
+      },
       
     ],
   },
