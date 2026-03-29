@@ -1,12 +1,11 @@
-import HeroCarousel from "../../home/HeroCarousel"
+import HeroCarousel from "../../home/HeroCarousel";
 import SiteFooter from "../../layout/SiteFooter";
 import { Link } from "react-router-dom";
 import Reveal from "../../animations/Reveal";
 import { motion } from "framer-motion";
 import ProductCard from "../../home/_ProductCard";
 
-
-const categories = [
+const homeCategories = [
   { name: "Watches", icon: "ri-time-line", count: 45 },
   { name: "Smart Watch", icon: "ri-smartphone-line", count: 32 },
   { name: "Airpods", icon: "ri-headphone-line", count: 28 },
@@ -18,7 +17,8 @@ const categories = [
   { name: "Bluetooth Speaker", icon: "ri-speaker-3-line", count: 24 },
   { name: "Mobile Service", icon: "ri-tools-line", count: 0 },
 ];
-const deals = [
+
+const fallbackDeals = [
   {
     id: 1,
     title: "Apple Watch Series 9",
@@ -56,6 +56,7 @@ const deals = [
       "https://res.cloudinary.com/dl0wwvy4j/image/upload/v1771602657/peqiblbo_bs5j1t.png",
   },
 ];
+
 const container = {
   hidden: { opacity: 0 },
   show: {
@@ -63,11 +64,13 @@ const container = {
     transition: { staggerChildren: 0.06 },
   },
 };
+
 const item = {
   hidden: { opacity: 0, y: 18 },
   show: { opacity: 1, y: 0, transition: { duration: 0.45, ease: "easeOut" } },
 };
-const arrivals = [
+
+const fallbackArrivals = [
   {
     id: 1,
     title: "Apple Watch Series 9",
@@ -123,6 +126,7 @@ const arrivals = [
       "https://res.cloudinary.com/dl0wwvy4j/image/upload/v1771602452/xs9zs0i9_pwrcng.png",
   },
 ];
+
 const testimonials = [
   {
     name: "Sarah Johnson",
@@ -130,7 +134,7 @@ const testimonials = [
     text:
       "Amazing quality products! My Apple Watch arrived in perfect condition and the customer service was exceptional.",
     avatar:
-      "https://res.cloudinary.com/dl0wwvy4j/image/upload/v1771602657/peqiblbo_bs5j1t.pnghttps://res.cloudinary.com/dl0wwvy4j/image/upload/v1771602788/57f874a3731a61926d6b998d6809044b_dkprff.jpg",
+      "https://res.cloudinary.com/dl0wwvy4j/image/upload/v1771602788/57f874a3731a61926d6b998d6809044b_dkprff.jpg",
   },
   {
     name: "Michael Chen",
@@ -151,125 +155,163 @@ const testimonials = [
 ];
 
 const features = [
-  { icon: "ri-shield-check-line", title: "2 Year Warranty", sub: "On all products" },
-  { icon: "ri-truck-line", title: "Fast Delivery", sub: "2-3 business days" },
-  { icon: "ri-lock-line", title: "Secure Payments", sub: "100% protected" },
-  { icon: "ri-customer-service-2-line", title: "24/7 Support", sub: "Always here to help" },
+  {
+    icon: "ri-shield-check-line",
+    title: "2 Year Warranty",
+    sub: "On all products",
+  },
+  {
+    icon: "ri-truck-line",
+    title: "Fast Delivery",
+    sub: "2-3 business days",
+  },
+  {
+    icon: "ri-lock-line",
+    title: "Secure Payments",
+    sub: "100% protected",
+  },
+  {
+    icon: "ri-customer-service-2-line",
+    title: "24/7 Support",
+    sub: "Always here to help",
+  },
 ];
 
-
 export default function Home({
-  deals = [],
-  arrivals = [],
+  deals = fallbackDeals,
+  arrivals = fallbackArrivals,
   loading = false,
   error = "",
 }) {
   if (loading) {
-    return <div className="min-h-screen grid place-items-center">Loading...</div>;
+    return (
+      <div className="grid min-h-screen place-items-center bg-white text-gray-700 dark:bg-[radial-gradient(circle_at_top,_#1e3a8a_0%,_#111827_35%,_#030712_100%)] dark:text-gray-300">
+        Loading...
+      </div>
+    );
   }
 
   if (error) {
-    return <div className="min-h-screen grid place-items-center text-red-600">{error}</div>;
+    return (
+      <div className="grid min-h-screen place-items-center bg-white text-blue-600 dark:bg-[radial-gradient(circle_at_top,_#1e3a8a_0%,_#111827_35%,_#030712_100%)] dark:text-blue-400">
+        {error}
+      </div>
+    );
   }
+
   const handleAddToCart = (p) => {
-    // TODO: connect to cart store/context later
     console.log("add to cart", p.id);
   };
 
-  return(
-    <>
-    <div className="min-h-screen bg-white">
+  return (
+    <div className="min-h-screen bg-white dark:bg-[radial-gradient(circle_at_top,_#1e3a8a_0%,_#111827_30%,_#030712_100%)]">
       <HeroCarousel />
 
-      <section className="py-20 bg-gradient-to-b from-white to-gray-50">
-        <div className="max-w-[1400px] mx-auto px-6">
+      <section className="bg-gradient-to-b from-white to-gray-50 py-20 dark:bg-none dark:from-transparent dark:to-transparent">
+        <div className="mx-auto max-w-[1400px] px-6">
           <Reveal>
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Shop by Category
-            </h2>
-            <p className="text-[15px] text-gray-600">
-              Explore our wide range of premium tech products
-            </p>
-          </div>
-          </Reveal>
-          <Reveal>
-                <motion.div
-                  className="grid grid-cols-2 md:grid-cols-5 gap-6"
-                  variants={container}
-                  initial="hidden"
-                  whileInView="show"
-                  viewport={{ once: true, amount: 0.2 }}
-                >
-              {categories.map((c) => (
-                  <Link
-                  key={c.name}
-                  to={`/shop?category=${encodeURIComponent(c.name)}`}
-                  className="group bg-white rounded-2xl p-6 hover:shadow-2xl transition-all duration-300 border border-gray-100 hover:border-red-200 hover:-translate-y-1 cursor-pointer"
-                  >
-                  <div className="w-14 h-14 flex items-center justify-center bg-gradient-to-br from-red-50 to-red-100 rounded-xl mb-4 group-hover:scale-110 transition-transform duration-300">
-                      <i className={`${c.icon} text-[24px] text-red-600`} />
-                  </div>
-                  <h3 className="text-[15px] font-semibold text-gray-900 mb-1">
-                      {c.name}
-                  </h3>
-                  <p className="text-[13px] text-gray-500">{c.count} products</p>
-                  </Link>
-              ))}
-              </motion.div>
-          </Reveal>
-        </div>
-      </section>
-      <section className="py-20 bg-white">
-        <div className="max-w-[1400px] mx-auto px-6">
-          <Reveal>
-          <div className="flex items-center justify-between mb-12">
-            <div>
-              <h2 className="text-4xl font-bold text-gray-900 mb-2">Top Deals</h2>
-              <p className="text-[15px] text-gray-600">
-                Limited time offers on premium products
+            <div className="mb-12 text-center">
+              <h2 className="mb-4 text-4xl font-bold text-gray-900 dark:text-gray-100">
+                Shop by Category
+              </h2>
+              <p className="text-[15px] text-gray-600 dark:text-gray-400">
+                Explore our wide range of premium tech products
               </p>
             </div>
-
-            <Link
-              to="/shop"
-              className="text-[14px] font-semibold text-red-600 hover:text-red-700 flex items-center gap-2 cursor-pointer whitespace-nowrap"
-            >
-              View All <i className="ri-arrow-right-line" />
-            </Link>
-          </div>
           </Reveal>
-          <Reveal delay={0.08}>
-          <motion.div
-              className="grid grid-cols-1 md:grid-cols-4 gap-6"
+
+          <Reveal>
+            <motion.div
+              className="grid grid-cols-2 gap-6 md:grid-cols-5"
               variants={container}
               initial="hidden"
               whileInView="show"
               viewport={{ once: true, amount: 0.2 }}
-              >
-            {deals.map((p) => (
-                  <motion.div key={p.id} variants={item}>
-                  <ProductCard product={p} variant="item" onAddToCart={handleAddToCart} />
-                  </motion.div>
+            >
+              {homeCategories.map((c) => (
+                <Link
+                  key={c.name}
+                  to={`/shop?category=${encodeURIComponent(c.name)}`}
+                  className="group cursor-pointer rounded-2xl border border-gray-100 bg-white p-6 transition-all duration-300 hover:-translate-y-1 hover:border-blue-200 hover:shadow-2xl dark:border-gray-800 dark:bg-gray-900 dark:hover:border-blue-500/40 dark:hover:shadow-blue-500/10"
+                >
+                  <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br from-blue-50 to-blue-100 transition-transform duration-300 group-hover:scale-110 dark:from-blue-500/10 dark:to-blue-500/20">
+                    <i className={`${c.icon} text-[24px] text-blue-600 dark:text-blue-400`} />
+                  </div>
+
+                  <h3 className="mb-1 text-[15px] font-semibold text-gray-900 dark:text-gray-100">
+                    {c.name}
+                  </h3>
+
+                  <p className="text-[13px] text-gray-500 dark:text-gray-400">
+                    {c.count} products
+                  </p>
+                </Link>
               ))}
-          </motion.div>
+            </motion.div>
           </Reveal>
         </div>
       </section>
-       <section className="py-20 bg-gradient-to-b from-gray-50 to-white">
-          <div className="max-w-[1400px] mx-auto px-6">
-            <Reveal>
-            <div className="text-center mb-12">
-              <h2 className="text-4xl font-bold text-gray-900 mb-4">New Arrivals</h2>
-              <p className="text-[15px] text-gray-600">
+
+      <section className="bg-white py-20 dark:bg-transparent">
+        <div className="mx-auto max-w-[1400px] px-6">
+          <Reveal>
+            <div className="mb-12 flex items-center justify-between">
+              <div>
+                <h2 className="mb-2 text-4xl font-bold text-gray-900 dark:text-gray-100">
+                  Top Deals
+                </h2>
+                <p className="text-[15px] text-gray-600 dark:text-gray-400">
+                  Limited time offers on premium products
+                </p>
+              </div>
+
+              <Link
+                to="/shop"
+                className="flex items-center gap-2 whitespace-nowrap text-[14px] font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+              >
+                View All <i className="ri-arrow-right-line" />
+              </Link>
+            </div>
+          </Reveal>
+
+          <Reveal delay={0.08}>
+            <motion.div
+              className="grid grid-cols-1 gap-6 md:grid-cols-4"
+              variants={container}
+              initial="hidden"
+              whileInView="show"
+              viewport={{ once: true, amount: 0.2 }}
+            >
+              {deals.map((p) => (
+                <motion.div key={p.id} variants={item}>
+                  <ProductCard
+                    product={p}
+                    variant="item"
+                    onAddToCart={handleAddToCart}
+                  />
+                </motion.div>
+              ))}
+            </motion.div>
+          </Reveal>
+        </div>
+      </section>
+
+      <section className="bg-gradient-to-b from-gray-50 to-white py-20 dark:bg-none dark:from-transparent dark:to-transparent">
+        <div className="mx-auto max-w-[1400px] px-6">
+          <Reveal>
+            <div className="mb-12 text-center">
+              <h2 className="mb-4 text-4xl font-bold text-gray-900 dark:text-gray-100">
+                New Arrivals
+              </h2>
+              <p className="text-[15px] text-gray-600 dark:text-gray-400">
                 Check out the latest additions to our collection
               </p>
             </div>
-            </Reveal>
-    
-            <Reveal>
+          </Reveal>
+
+          <Reveal>
             <motion.div
-              className="grid grid-cols-1 md:grid-cols-3 gap-6"
+              className="grid grid-cols-1 gap-6 md:grid-cols-3"
               variants={container}
               initial="hidden"
               whileInView="show"
@@ -287,54 +329,60 @@ export default function Home({
                 </motion.div>
               ))}
             </motion.div>
-            </Reveal>
-          </div>
-        </section>
-      <section className="py-20 bg-white">
-        <div className="max-w-[1400px] mx-auto px-6">
+          </Reveal>
+        </div>
+      </section>
+
+      <section className="bg-white py-20 dark:bg-transparent">
+        <div className="mx-auto max-w-[1400px] px-6">
           <motion.div
-              className="text-center mb-12"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.3 }}
-              transition={{ duration: 0.5 }}
-            >
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+            className="mb-12 text-center"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.3 }}
+            transition={{ duration: 0.5 }}
+          >
+            <h2 className="mb-4 text-4xl font-bold text-gray-900 dark:text-gray-100">
               What Our Customers Say
             </h2>
-            <p className="text-[15px] text-gray-600">
+            <p className="text-[15px] text-gray-600 dark:text-gray-400">
               Join thousands of satisfied customers
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
             {testimonials.map((t) => (
               <motion.div
-                  key={t.name}
-                  variants={item}
-                  className="bg-gradient-to-br from-red-50 to-white rounded-2xl p-8 border border-red-100"
-                >
-                <div className="flex items-center gap-1 mb-4">
+                key={t.name}
+                variants={item}
+                className="rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50 to-white p-8 dark:border-blue-500/15 dark:bg-gradient-to-br dark:from-blue-500/10 dark:to-gray-900"
+              >
+                <div className="mb-4 flex items-center gap-1">
                   {Array.from({ length: 5 }).map((_, i) => (
-                    <i key={i} className="ri-star-fill text-[16px] text-yellow-400" />
+                    <i
+                      key={i}
+                      className="ri-star-fill text-[16px] text-yellow-400"
+                    />
                   ))}
                 </div>
 
-                <p className="text-[14px] text-gray-700 leading-relaxed mb-6">
+                <p className="mb-6 text-[14px] leading-relaxed text-gray-700 dark:text-gray-300">
                   {t.text}
                 </p>
 
                 <div className="flex items-center gap-3">
                   <img
                     alt={t.name}
-                    className="w-12 h-12 rounded-full object-cover"
+                    className="h-12 w-12 rounded-full object-cover ring-2 ring-blue-100 dark:ring-blue-500/20"
                     src={t.avatar}
                   />
                   <div>
-                    <h4 className="text-[14px] font-semibold text-gray-900">
+                    <h4 className="text-[14px] font-semibold text-gray-900 dark:text-gray-100">
                       {t.name}
                     </h4>
-                    <p className="text-[13px] text-gray-500">{t.role}</p>
+                    <p className="text-[13px] text-gray-500 dark:text-gray-400">
+                      {t.role}
+                    </p>
                   </div>
                 </div>
               </motion.div>
@@ -342,18 +390,21 @@ export default function Home({
           </div>
         </div>
       </section>
-      <section className="py-16 bg-gradient-to-br from-red-600 to-red-800">
-        <div className="max-w-[1400px] mx-auto px-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+
+      <section className="bg-gradient-to-br from-blue-600 to-blue-800 py-16 dark:from-blue-700 dark:via-blue-900 dark:to-slate-950">
+        <div className="mx-auto max-w-[1400px] px-6">
+          <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
             {features.map((f) => (
-              <Reveal>
-              <div key={f.title} className="text-center">
-                <div className="w-16 h-16 flex items-center justify-center bg-white/10 backdrop-blur-xl rounded-2xl mx-auto mb-4">
-                  <i className={`${f.icon} text-[32px] text-white`} />
+              <Reveal key={f.title}>
+                <div className="text-center">
+                  <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-white/10 backdrop-blur-xl dark:bg-white/10">
+                    <i className={`${f.icon} text-[32px] text-white`} />
+                  </div>
+                  <h3 className="mb-2 text-[15px] font-bold text-white">
+                    {f.title}
+                  </h3>
+                  <p className="text-[13px] text-white/80">{f.sub}</p>
                 </div>
-                <h3 className="text-[15px] font-bold text-white mb-2">{f.title}</h3>
-                <p className="text-[13px] text-white/80">{f.sub}</p>
-              </div>
               </Reveal>
             ))}
           </div>
@@ -362,6 +413,5 @@ export default function Home({
 
       <SiteFooter />
     </div>
-    </>
   );
 }

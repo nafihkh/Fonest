@@ -14,7 +14,7 @@ export default function ThemeBootstrap() {
       try {
         // If user is logged in, load from DB
         if (accessToken) {
-          const res = await api.get("/api/settings");
+          const res = await api.get("/api/profile/settings");
           const theme = res.data?.settings?.appearance?.theme || "system";
           applyTheme(theme);
           return;
