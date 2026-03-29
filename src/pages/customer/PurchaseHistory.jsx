@@ -1,37 +1,35 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useParams } from "react-router-dom";
 import useIsMobile from "../../hooks/useIsMobile";
-import PurchaseHistoryMobileView from "../../components/customer/Mobile/ProductDetailsMobile";
+import PurchaseHistoryMobileView from "../../components/customer/Mobile/PurchaseHistory";
 import PurchaseHistoryDesktopView from "../../components/customer/Desktop/PurchaseHistory";
 import MobileLayout from "../../components/layout/MobileLayout";
 import {
-  fetchProductById,
-  selectProductById,
-  selectProductsLoadingDetails,
-  selectProductsErrorDetails,
-} from "../../store/slices/productSlice";
+  fetchMyOrders,
+  selectMyOrders,
+  selectMyOrdersLoading,
+  selectMyOrdersError,
+} from "../../store/slices/orderSlice";
 
-export default function ProductDetailsPage() {
-  const { id } = useParams();
+export default function PurchaseHistoryPage() {
   const dispatch = useDispatch();
   const isMobile = useIsMobile(768);
   const [search, setSearch] = useState("");
 
-  const product = useSelector(selectProductById(id));
-  const loading = useSelector(selectProductsLoadingDetails);
-  const error = useSelector(selectProductsErrorDetails);
+  const orders = useSelector(selectMyOrders);
+  const loading = useSelector(selectMyOrdersLoading);
+  const error = useSelector(selectMyOrdersError);
 
   useEffect(() => {
-    if (id) {
-      dispatch(fetchProductById(id));
-    }
-  }, [dispatch, id]);
+    dispatch(fetchMyOrders());
+  }, [dispatch]);
 
   const sharedProps = {
-    product,
+    orders,
     loading,
     error,
+    search,
+    setSearch,
   };
 
   if (isMobile) {

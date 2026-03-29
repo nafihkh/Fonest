@@ -1,5 +1,6 @@
 import { useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { Navigate } from "react-router-dom";
 import useIsMobile from "../../hooks/useIsMobile";
 import HomeMobileView from "../../components/customer/Mobile/Home";
 import HomeDesktopView from "../../components/customer/Desktop/LandingPage";
@@ -118,7 +119,7 @@ export default function HomePage() {
   };
 
   return isMobile ? (
-    <HomeMobileView {...sharedProps} />
+    <Navigate to="/home" replace />
   ) : (
     <HomeDesktopView {...sharedProps} />
   );
