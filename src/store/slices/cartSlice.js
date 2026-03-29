@@ -12,7 +12,7 @@ export const fetchCart = createAsyncThunk(
       const { data } = await api.get("/api/cart", {
         withCredentials: true,
       });
-
+      
       return data;
     } catch (err) {
       return rejectWithValue(
