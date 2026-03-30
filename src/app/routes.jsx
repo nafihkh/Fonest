@@ -26,6 +26,9 @@ import OrderPlacedPage from "../pages/customer/OrderPlacedPage";
 import PurchaseHistory from "../pages/customer/PurchaseHistory"
 import OrderDetailsPage from "../pages/customer/OrderDetailsPage";
 import UpdateDeliveryInstructions from "../pages/customer/UpdateDeliveryInstructionsPage";
+import CartCheckoutPage from "../pages/customer/CartCheckoutPage";
+import AddressPage from "../pages/customer/AddressPage";
+import AddNewAddressPage from "../pages/customer/AddNewAdressPage";
 
 const router = createBrowserRouter([
   {
@@ -239,6 +242,30 @@ const router = createBrowserRouter([
         element: (
           <ProtectedRoute role="customer">
             <UpdateDeliveryInstructions />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/checkout/cart",
+        element: (
+          <ProtectedRoute role="customer">
+            <CartCheckoutPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/profile/addresses",
+        element: (
+          <ProtectedRoute role="customer">
+            <AddressPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/profile/addresses/new",
+        element: (
+          <ProtectedRoute role="customer">
+            <AddNewAddressPage />
           </ProtectedRoute>
         ),
       },
