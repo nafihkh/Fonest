@@ -75,5 +75,10 @@ export default function OrderDetailsPage() {
     );
   }
 
-  return <OrderDetailsDesktop />;
+  return  <OrderDetailsDesktop
+            order={order}
+            loading={loading}
+            error={error}
+            relatedProducts={relatedProducts}
+          />;
 }

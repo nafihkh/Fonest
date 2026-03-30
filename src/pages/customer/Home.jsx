@@ -23,6 +23,7 @@ export default function ShopPage() {
   const latestProducts = useSelector(selectLatestProducts);
   const loading = useSelector(selectProductsLoadingHome);
   const error = useSelector(selectProductsErrorHome);
+  
 
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 400);
