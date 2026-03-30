@@ -2,21 +2,27 @@ import React, { useEffect, useRef, useState } from "react";
 import MobileHeader from "./MobileHeader";
 import MobileBottomNav from "./MobileBottomNav";
 import SearchFilterChips from "../customer/SearchFilterChips";
+import AddressBottomSheetContainer from "../../components/AddressBottomSheet";
 import { MapPin, ChevronDown } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 function DeliveryStrip({
   userName = "Guest",
   place = "Kochi",
   pincode = "682001",
+  onClick = () => {},
 }) {
   return (
-    <div className="flex h-[34px] items-center gap-2 rounded-2xl border border-gray-200 bg-white/95 px-3 text-[12px] text-gray-700 shadow-sm backdrop-blur-sm dark:border-gray-800 dark:bg-gray-900/95 dark:text-gray-200">
+    <button
+      onClick={onClick}
+      className="flex h-[34px] w-full items-center gap-2 rounded-2xl border border-gray-200 bg-white/95 px-3 text-[12px] text-gray-700 shadow-sm backdrop-blur-sm dark:border-gray-800 dark:bg-gray-900/95 dark:text-gray-200"
+    >
       <MapPin
         size={14}
         className="shrink-0 text-blue-500 dark:text-blue-400"
       />
 
-      <span className="truncate">
+      <span className="truncate text-left">
         Delivery to{" "}
         <span className="font-semibold text-gray-900 dark:text-gray-100">
           {userName}
@@ -28,7 +34,7 @@ function DeliveryStrip({
         size={14}
         className="ml-auto shrink-0 text-gray-500 dark:text-gray-400"
       />
-    </div>
+    </button>
   );
 }
 
@@ -42,7 +48,9 @@ export default function MobileLayout({
   searchFilterProps = {},
 }) {
   const [hideDelivery, setHideDelivery] = useState(false);
+  const [addressSheetOpen, setAddressSheetOpen] = useState(false);
   const lastScrollY = useRef(0);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -86,7 +94,10 @@ export default function MobileLayout({
                   : "mb-3 max-h-[44px] translate-y-0 opacity-100"
               }`}
             >
-              <DeliveryStrip {...deliveryProps} />
+              <DeliveryStrip
+                {...deliveryProps}
+                onClick={() => setAddressSheetOpen(true)}
+              />
             </div>
           ) : null}
 
@@ -101,6 +112,21 @@ export default function MobileLayout({
       </div>
 
       <MobileBottomNav />
+
+      <AddressBottomSheetContainer
+        open={addressSheetOpen}
+        onClose={() => setAddressSheetOpen(false)}
+        onAddAddress={() => {
+          setAddressSheetOpen(false);
+          navigate("/profile/addresses");
+        }}
+        onEnterPincode={() => {
+          console.log("open pincode popup");
+        }}
+        onUseCurrentLocation={() => {
+          console.log("use current location");
+        }}
+      />
     </div>
   );
 }

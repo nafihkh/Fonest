@@ -1,9 +1,11 @@
-import React from "react";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import ProductCardSkeleton from "../../ui/ProductGridSkeleton";
 import MobileDealSkeleton from "../../ui/MobileDealSkeleton";
 import MobileCategorySkeleton from "../../ui/MobileCategorySkeleton";
 import MobileRecentSkeleton from "../../ui/MobileRecentSkeleton";
 import EmptyState from "../../ui/EmptyState";
+import AddressBottomSheetContainer from "../../../components/AddressBottomSheet";
 import {
   ChevronRight,
   Smartphone,
@@ -164,6 +166,8 @@ export default function MobileHomePage({
   error = "",
   onAddToCart = () => {},
 }) {
+  const navigate = useNavigate();
+  const [openAddressSheet, setOpenAddressSheet] = useState(false);  
   if (loading) {
     return (
       <>
@@ -243,6 +247,7 @@ export default function MobileHomePage({
       </>
     );
   }
+  
 
   return (
     <>
@@ -263,7 +268,7 @@ export default function MobileHomePage({
             </div>
           </div>
 
-          <button className="rounded-xl border border-gray-200 bg-white px-4 py-2 text-[13px] font-semibold text-gray-700 shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 md:px-5 md:py-2.5 md:text-[14px]">
+          <button onClick={() => setOpenAddressSheet(true)} className="rounded-xl border border-gray-200 bg-white px-4 py-2 text-[13px] font-semibold text-gray-700 shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 md:px-5 md:py-2.5 md:text-[14px]">
             Change
           </button>
         </div>
@@ -321,13 +326,17 @@ export default function MobileHomePage({
           </button>
         </div>
       </section>
+      
 
       <section className="pb-3">
         <SectionHeader title="Recommended for You" actionText="Filter" />
 
         <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4">
-          {products.map((product) => (
-            <ProductCard key={product.id} product={product} />
+          {recommendedProducts.map((product) => (
+            
+            <button onClick={() => navigate(`/product/${product._id}`)} className="text-left">
+              <ProductCard key={product._id} product={product} />
+            </button>
           ))}
         </div>
 
@@ -335,6 +344,19 @@ export default function MobileHomePage({
           See All Products
         </button>
       </section>
+      <AddressBottomSheetContainer
+        open={openAddressSheet}
+        onClose={() => setOpenAddressSheet(false)}
+        onAddAddress={() => {
+          console.log("open add address form");
+        }}
+        onEnterPincode={() => {
+          console.log("open pincode sheet");
+        }}
+        onUseCurrentLocation={() => {
+          console.log("use current location");
+        }}
+      />
     </>
   );
 }

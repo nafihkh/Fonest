@@ -296,7 +296,7 @@ export default function MobileCartPage({
             </div>
 
             <button
-              onClick={onProceedToPayment}
+             onClick={() => navigate("/checkout/cart")}
               className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl bg-blue-500 py-4 text-[18px] font-semibold text-white transition hover:bg-blue-600 dark:bg-blue-500 dark:hover:bg-blue-400 md:text-[17px]"
             >
               Proceed to Checkout

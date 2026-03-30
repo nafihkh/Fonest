@@ -33,21 +33,21 @@ function formatDate(date) {
 
 function StatusStep({ icon: Icon, title, subtitle, active, completed, last }) {
   return (
-    <div className="relative flex flex-1 items-start gap-4">
-      <div className="relative z-10 flex flex-col items-center">
+    <div className="relative items-start gap-4">
+      <div className="relative flex flex-row items-center justify-center">
         <div
-          className={`flex h-12 w-12 items-center justify-center rounded-full border-2 transition-all duration-300 ${
+          className={`flex h-18 w-18 z-10 items-center justify-center rounded-full border-2 transition-all duration-300 ${
             completed || active
               ? "border-blue-600 bg-blue-600 text-white dark:border-blue-500 dark:bg-blue-500"
               : "border-gray-300 bg-white text-gray-400 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-500"
           }`}
         >
-          <Icon size={18} />
+          <Icon size={24} />
         </div>
 
         {!last && (
           <div
-            className={`mt-2 h-16 w-[2px] ${
+            className={`mt-2 absolute z-0 left-27 h-[3px] lg:w-42 md:left-28 md:w-40 lg:left-34 lg:w-65 md:w-38 xl:left-30 xl:w-50  ${
               completed
                 ? "bg-blue-600 dark:bg-blue-500"
                 : "bg-gray-200 dark:bg-gray-700"
@@ -56,7 +56,7 @@ function StatusStep({ icon: Icon, title, subtitle, active, completed, last }) {
         )}
       </div>
 
-      <div className="pt-2">
+      <div className="pt-2 text-center">
         <h4
           className={`text-[15px] font-semibold ${
             completed || active
@@ -368,7 +368,7 @@ export default function OrderDetailsDesktop({
           <div className="grid grid-cols-1 gap-8 xl:grid-cols-3">
             <div className="space-y-8 xl:col-span-2">
               <InfoCard title="Shipping Progress">
-                <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+                <div className="grid grid-cols-4 gap-8 md:grid-cols-4">
                   <StatusStep
                     icon={PackageCheck}
                     title="Placed"
