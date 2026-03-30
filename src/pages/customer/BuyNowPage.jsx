@@ -13,6 +13,10 @@ import {
   selectProductsLoadingDetails,
   selectProductsErrorDetails,
 } from "../../store/slices/productSlice";
+import {
+  fetchMyAddresses,
+  selectProfileAddresses,
+} from "../../store/slices/profileSlice";
 
 function formatPrice(value) {
   return `₹${Number(value || 0).toLocaleString("en-IN")}`;
@@ -26,6 +30,11 @@ export default function BuyNowPage() {
   const product = useSelector(selectProductById(id));
   const loading = useSelector(selectProductsLoadingDetails);
   const error = useSelector(selectProductsErrorDetails);
+
+  const addresses = useSelector(selectProfileAddresses);
+  const [selectedAddressId, setSelectedAddressId] = useState("");
+  const selectedAddress =
+addresses.find((addr) => String(addr._id) === String(selectedAddressId)) || null;
 
   const [qty, setQty] = useState(1);
   const [couponCode, setCouponCode] = useState("");
@@ -58,6 +67,12 @@ export default function BuyNowPage() {
         finalAmount: subtotal + deliveryCharge,
     });
     }, [product, qty]);
+    useEffect(() => {
+      dispatch(fetchMyAddresses());
+    }, [dispatch]);
+    useEffect(() => {
+      dispatch(fetchMyAddresses());
+    }, [dispatch]);
     const handleApplyCoupon = async () => {
         try {
             setCouponLoading(true);
@@ -92,6 +107,10 @@ export default function BuyNowPage() {
     };
     const handleContinueToPayment = async () => {
     try {
+        if (!selectedAddress) {
+          alert("Please select a delivery address");
+          return;
+        }
         const res = await api.post("/api/checkout/create-razorpay-order", {
         productId: product._id,
         quantity: qty,
@@ -115,16 +134,19 @@ export default function BuyNowPage() {
             productId: product._id,
             quantity: qty,
             couponCode,
-            address: {
-                fullName: "Demo User",
-                phone: "9999999999",
-                line1: "Taliparamba Main Road",
-                line2: "",
-                city: "Kannur",
-                state: "Kerala",
-                pincode: "670141",
+            addressId: selectedAddressId, 
+            address: selectedAddress
+            ? {
+                fullName: selectedAddress.fullName,
+                phone: selectedAddress.phone,
+                line1: selectedAddress.line1,
+                line2: selectedAddress.line2 || "",
+                city: selectedAddress.city,
+                state: selectedAddress.state,
+                pincode: selectedAddress.pincode,
                 country: "India",
-            }, // later real address state
+              }
+            : null,
         });
 
         if (verifyRes.data.success) {
@@ -134,9 +156,9 @@ export default function BuyNowPage() {
         }
         },
         prefill: {
-            name: "Demo User",
-            email: "demo@example.com",
-            contact: "9999999999",
+            name: selectedAddress.fullName,
+            Address: selectedAddress.line1,
+            contact: selectedAddress.phone,
         },
         theme: {
             color: "#3B82F6",
@@ -233,10 +255,69 @@ export default function BuyNowPage() {
       </div>
 
       <div className="mb-4 rounded-2xl bg-white p-4 shadow-sm">
-        <h2 className="mb-3 text-[15px] font-bold text-gray-900">Delivery Address</h2>
-        <div className="rounded-xl border border-dashed border-gray-300 p-3 text-[13px] text-gray-500">
-          Add / choose address in next step
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-[15px] font-bold text-gray-900">Delivery Address</h2>
+
+          <button
+            onClick={() => navigate("/profile/addresses")}
+            className="text-[12px] font-semibold text-blue-500"
+          >
+            Manage
+          </button>
         </div>
+
+        {!addresses?.length ? (
+            <button
+              onClick={() => navigate("/profile/addresses/new")}
+              className="w-full rounded-xl border border-dashed border-gray-300 p-4 text-left text-[13px] text-gray-500"
+            >
+              Add new address
+            </button>
+          ) : (
+            <div className="grid grid-cols-1 gap-3">
+              {addresses.map((address) => {
+                const active = String(selectedAddressId) === String(address._id);
+
+                return (
+                  <button
+                    key={address._id}
+                    onClick={() => setSelectedAddressId(address._id)}
+                    className={`rounded-2xl border p-3 text-left transition ${
+                      active
+                        ? "border-blue-500 bg-blue-50"
+                        : "border-gray-200 bg-white"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <p className="text-[13px] font-semibold text-gray-900">
+                        {address.fullName}
+                      </p>
+
+                      {address.isDefault ? (
+                        <span className="rounded-full bg-white px-2 py-0.5 text-[10px] font-semibold text-blue-600">
+                          Default
+                        </span>
+                      ) : null}
+                    </div>
+
+                    <p className="mt-1 text-[12px] text-gray-600">
+                      {address.line1}
+                      {address.line2 ? `, ${address.line2}` : ""}
+                      {address.landmark ? `, ${address.landmark}` : ""}
+                    </p>
+
+                    <p className="mt-1 text-[12px] text-gray-600">
+                      {address.city}, {address.state} - {address.pincode}
+                    </p>
+
+                    <p className="mt-1 text-[12px] text-gray-500">
+                      {address.phone}
+                    </p>
+                  </button>
+                );
+              })}
+            </div>
+          )}
       </div>
 
       <div className="mb-4 rounded-2xl bg-white p-4 shadow-sm">
