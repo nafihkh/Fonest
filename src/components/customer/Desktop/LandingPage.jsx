@@ -182,6 +182,7 @@ export default function Home({
   arrivals = fallbackArrivals,
   loading = false,
   error = "",
+  onAddToCart,
 }) {
   if (loading) {
     return (
@@ -198,10 +199,6 @@ export default function Home({
       </div>
     );
   }
-
-  const handleAddToCart = (p) => {
-    console.log("add to cart", p.id);
-  };
 
   return (
     <div className="min-h-screen bg-white dark:bg-[radial-gradient(circle_at_top,_#1e3a8a_0%,_#111827_30%,_#030712_100%)]">
@@ -287,7 +284,7 @@ export default function Home({
                   <ProductCard
                     product={p}
                     variant="item"
-                    onAddToCart={handleAddToCart}
+                    onAddToCart={onAddToCart}
                   />
                 </motion.div>
               ))}
@@ -319,13 +316,11 @@ export default function Home({
             >
               {arrivals.map((p) => (
                 <motion.div key={p.id} variants={item}>
-                  <Link to={`/product/${p.id}`} className="block">
-                    <ProductCard
-                      product={p}
-                      variant="arrival"
-                      onAddToCart={handleAddToCart}
-                    />
-                  </Link>
+                  <ProductCard
+                    product={p}
+                    variant="arrival"
+                    onAddToCart={onAddToCart}
+                  />
                 </motion.div>
               ))}
             </motion.div>

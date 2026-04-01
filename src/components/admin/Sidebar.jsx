@@ -12,19 +12,23 @@ import {
   Settings,
   ChevronRight,
   LogOut,
-   MoveUpRight,
+  MoveUpRight,
+  Tag,
+  ShoppingBag,
 } from "lucide-react";
 
 const nav = [
-  { label: "Dashboard", to: "/admin", icon: LayoutDashboard },
-  { label: "Users", to: "/admin/users", icon: Users },
-  { label: "Products", to: "/admin/products", icon: Package },
-  { label: "Add Product", to: "/admin/addproduct", icon: PlusCircle },
-  { label: "Stock Ops", to: "/admin/stock", icon: Boxes },
-  { label: "Returns", to: "/admin/returns", icon: RotateCcw },
-  { label: "Profit Analysis", to: "/admin/profit", icon: TrendingUp },
-  { label: "Reports", to: "/admin/reports", icon: FileText },
-  { label: "Settings", to: "/admin/settings", icon: Settings },
+  { label: "Dashboard",         to: "/admin",              icon: LayoutDashboard },
+  { label: "Orders",            to: "/admin/orders",       icon: ShoppingBag },
+  { label: "Users",             to: "/admin/users",        icon: Users },
+  { label: "Products",          to: "/admin/products",     icon: Package },
+  { label: "Add Product",       to: "/admin/addproduct",   icon: PlusCircle },
+  { label: "Brands & Categories", to: "/admin/brand-category", icon: Tag },
+  { label: "Stock Ops",         to: "/admin/stock",        icon: Boxes },
+  { label: "Returns",           to: "/admin/returns",      icon: RotateCcw },
+  { label: "Profit Analysis",   to: "/admin/profit",       icon: TrendingUp },
+  { label: "Reports",           to: "/admin/reports",      icon: FileText },
+  { label: "Settings",          to: "/admin/settings",     icon: Settings },
 ];
 
 export default function Sidebar() {

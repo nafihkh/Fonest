@@ -1,12 +1,24 @@
+import { Link } from "react-router-dom";
+
 export default function ProductCard({
   product,
   variant = "deal", // "deal" | "arrival"
   onAddToCart,
 }) {
   const isDeal = variant === "deal";
+  const productId = product._id || product.id;
+
+  const handleAddToCart = (e) => {
+    e.preventDefault(); // prevent Link navigation when clicking button
+    e.stopPropagation();
+    onAddToCart?.(product);
+  };
 
   return (
-    <div className="group overflow-hidden rounded-2xl border border-gray-100 bg-white transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl dark:border-gray-800 dark:bg-gray-900 dark:hover:border-blue-500/40 dark:hover:shadow-blue-500/10">
+    <Link
+      to={productId ? `/product/${productId}` : "#"}
+      className="group block overflow-hidden rounded-2xl border border-gray-100 bg-white transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl dark:border-gray-800 dark:bg-gray-900 dark:hover:border-blue-500/40 dark:hover:shadow-blue-500/10"
+    >
       <div
         className={`relative overflow-hidden bg-gray-50 dark:bg-gray-800 ${
           isDeal ? "aspect-square" : "aspect-[4/3]"
@@ -57,7 +69,7 @@ export default function ProductCard({
             </div>
 
             <button
-              onClick={() => onAddToCart?.(product)}
+              onClick={handleAddToCart}
               className="w-full whitespace-nowrap rounded-xl bg-blue-600 py-2.5 text-[14px] font-medium text-white transition-all duration-300 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
               type="button"
             >
@@ -71,7 +83,7 @@ export default function ProductCard({
             </span>
 
             <button
-              onClick={() => onAddToCart?.(product)}
+              onClick={handleAddToCart}
               className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-600 text-white transition-all duration-300 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
               type="button"
               aria-label="Add to cart"
@@ -81,6 +93,6 @@ export default function ProductCard({
           </div>
         )}
       </div>
-    </div>
+    </Link>
   );
 }
