@@ -5,7 +5,7 @@ import { GoogleLogin } from "@react-oauth/google";
 import { useGoogleLogin } from "@react-oauth/google";
 import { AnimatePresence, motion } from "framer-motion";
 import { useDispatch } from "react-redux";
-import { setCredentials } from "../../store/authSlice";
+import { setCredentials } from "../../store/slices/authSlice";
 
 
 export default function AuthPage() {

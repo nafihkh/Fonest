@@ -1,6 +1,7 @@
 // src/pages/admin/Reports.jsx
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect, useCallback } from "react";
 import AdminLayout from "../../components/admin/AdminLayout";
+import { api } from "../../services/api";
 import {
   CalendarDays,
   Filter,
@@ -8,6 +9,7 @@ import {
   FileText,
   Search,
   MoreVertical,
+  RefreshCcw,
 } from "lucide-react";
 
 // ---------- small UI helpers ----------
@@ -266,6 +268,29 @@ function Donut() {
 // ---------- Page ----------
 export default function Reports() {
   const [page, setPage] = useState(1);
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  const load = useCallback(async () => {
+    try {
+      setLoading(true);
+      const res = await api.get("/api/admin/analytics/reports");
+      setStats(res.data.stats);
+    } catch {
+      // fallback: keep null, show dummy
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  function fmtCurrency(v) {
+    if (!v) return "₹0";
+    if (v >= 100000) return `₹${(v / 100000).toFixed(1)}L`;
+    if (v >= 1000) return `₹${(v / 1000).toFixed(1)}K`;
+    return `₹${v}`;
+  }
 
   return (
     <AdminLayout>
@@ -273,11 +298,12 @@ export default function Reports() {
         {/* top bar */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-3">
-            <Chip icon={CalendarDays} label="Last 30 Days" />
+            <Chip icon={CalendarDays} label="This Month" />
             <Chip icon={Filter} label="All Categories" />
           </div>
 
           <div className="flex items-center gap-3">
+            <ActionBtn icon={RefreshCcw} label="Refresh" onClick={load} />
             <ActionBtn icon={Download} label="Export CSV" />
             <PrimaryBtn icon={FileText} label="Generate PDF Report" />
           </div>
@@ -286,9 +312,19 @@ export default function Reports() {
         {/* top stats + insight card */}
         <div className="grid grid-cols-1 xl:grid-cols-[1fr_360px] gap-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <StatMini title="Total Items Sold" value="12,482" sub="vs. previous month ↑ 14.2%" subTone="green" />
-            <StatMini title="Gross Product Revenue" value="$1.24M" sub="vs. previous month ↑ 8.5%" subTone="green" />
-            <StatMini title="Return Rate" value="1.4%" sub="Improved by 0.8% ↓ 0.8%" subTone="red" />
+            <StatMini
+              title="Total Items Sold"
+              value={loading ? "..." : (stats?.monthlySoldUnits?.toLocaleString("en-IN") ?? "0")}
+              sub={stats ? `vs. last month ${stats.unitsDelta >= 0 ? "↑" : "↓"} ${Math.abs(stats.unitsDelta)}%` : ""}
+              subTone={stats?.unitsDelta >= 0 ? "green" : "red"}
+            />
+            <StatMini
+              title="Gross Revenue (This Month)"
+              value={loading ? "..." : fmtCurrency(stats?.monthlyRevenue ?? 0)}
+              sub={stats ? `vs. last month ${stats.revenueDelta >= 0 ? "↑" : "↓"} ${Math.abs(stats.revenueDelta)}%` : ""}
+              subTone={stats?.revenueDelta >= 0 ? "green" : "red"}
+            />
+            <StatMini title="Return Rate" value="—" sub="Connect returns data" subTone="neutral" />
           </div>
 
           <div className="bg-indigo-600 text-white rounded-2xl shadow-sm p-5">
@@ -373,43 +409,45 @@ export default function Reports() {
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
           <Card
             title="Best Selling Products"
-            subtitle="Top revenue generators this period"
+            subtitle="Top revenue generators this month"
             right={
-              <button className="text-[12px] font-semibold text-indigo-600 dark:text-indigo-300 hover:underline">
-                View All
-              </button>
+              <button className="text-[12px] font-semibold text-indigo-600 dark:text-indigo-300 hover:underline">View All</button>
             }
           >
             <div className="space-y-3">
-              {bestProducts.map((p) => (
-                <div
-                  key={p.id}
-                  className="flex items-center justify-between gap-3 p-3 rounded-2xl border border-slate-200/70 dark:border-slate-700"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200/70 dark:border-slate-700 grid place-items-center">
-                      <span className="text-slate-700 dark:text-slate-200 text-[12px] font-bold">
-                        {p.name.slice(0, 1)}
-                      </span>
-                    </div>
-                    <div>
-                      <div className="text-[13px] font-semibold text-slate-900 dark:text-slate-100">
-                        {p.name}
+              {loading
+                ? [1, 2, 3].map((i) => (
+                    <div key={i} className="h-14 animate-pulse rounded-2xl bg-slate-100 dark:bg-slate-800" />
+                  ))
+                : (stats?.topProducts?.length
+                    ? stats.topProducts
+                    : bestProducts
+                  ).map((p, idx) => (
+                    <div key={p.name || p.id}
+                      className="flex items-center justify-between gap-3 p-3 rounded-2xl border border-slate-200/70 dark:border-slate-700">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200/70 dark:border-slate-700 grid place-items-center">
+                          <span className="text-slate-700 dark:text-slate-200 text-[12px] font-bold">{(p.name || p.id)[0]}</span>
+                        </div>
+                        <div>
+                          <div className="text-[13px] font-semibold text-slate-900 dark:text-slate-100">{p.name}</div>
+                          <div className="text-[11px] text-slate-500 dark:text-slate-400">
+                            {p.category || p.meta} • {p.units ? `${p.units} Sold` : ""}
+                          </div>
+                        </div>
                       </div>
-                      <div className="text-[11px] text-slate-500 dark:text-slate-400">{p.meta}</div>
+                      <div className="text-right">
+                        <div className="text-[13px] font-extrabold text-slate-900 dark:text-slate-100">
+                          {p.revenue ? `₹${p.revenue.toLocaleString("en-IN")}` : p.value}
+                        </div>
+                        {p.growth && (
+                          <div className={`text-[11px] font-semibold ${p.growth.startsWith("-") ? "text-rose-500" : "text-emerald-600 dark:text-emerald-400"}`}>
+                            {p.growth.startsWith("-") ? "↓" : "↑"} {p.growth}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-
-                  <div className="text-right">
-                    <div className="text-[13px] font-extrabold text-slate-900 dark:text-slate-100">
-                      {p.value}
-                    </div>
-                    <div className="text-[11px] text-emerald-600 dark:text-emerald-300 font-semibold">
-                      ↑ {p.growth}
-                    </div>
-                  </div>
-                </div>
-              ))}
+                  ))}
             </div>
           </Card>
 

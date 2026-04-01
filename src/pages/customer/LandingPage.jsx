@@ -1,8 +1,7 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Navigate } from "react-router-dom";
 import useIsMobile from "../../hooks/useIsMobile";
-import HomeMobileView from "../../components/customer/Mobile/Home";
 import HomeDesktopView from "../../components/customer/Desktop/LandingPage";
 import {
   fetchHomeProducts,
@@ -11,23 +10,22 @@ import {
   selectProductsLoadingHome,
   selectProductsErrorHome,
 } from "../../store/slices/productSlice";
+import { addToCart } from "../../store/slices/cartSlice";
 
 function formatPrice(value) {
   const num = Number(value || 0);
-  return `$${num}`;
+  return `₹${num}`;
 }
 
 function mapFeaturedToDeals(products = []) {
   return products.map((p) => {
     const price = Number(p.price || 0);
     const compareAtPrice = Number(p.compareAtPrice || 0);
-
     let discountLabel = "";
     if (compareAtPrice > price && compareAtPrice > 0) {
       const discount = Math.round(((compareAtPrice - price) / compareAtPrice) * 100);
       discountLabel = `-${discount}%`;
     }
-
     return {
       id: p._id,
       _id: p._id,
@@ -80,8 +78,8 @@ function mapLatestToRecommended(products = []) {
     compareAtPrice: Number(p.compareAtPrice || 0),
     oldPrice: Number(p.compareAtPrice || 0) || null,
     image: p.image || "",
-    rating: 4.8, // temporary static until backend has rating
-    reviews: 120, // temporary static until backend has reviews
+    rating: 4.8,
+    reviews: 120,
     tag: p.isFeatured ? "Bestseller" : "",
     slug: p.slug || "",
     stock: p.stock || 0,
@@ -108,6 +106,13 @@ export default function HomePage() {
     [latestProducts]
   );
 
+  const handleAddToCart = useCallback(
+    (product) => {
+      dispatch(addToCart({ productId: product._id || product.id, quantity: 1 }));
+    },
+    [dispatch]
+  );
+
   const sharedProps = {
     featuredProducts,
     latestProducts,
@@ -116,6 +121,7 @@ export default function HomePage() {
     recommendedProducts,
     loading,
     error,
+    onAddToCart: handleAddToCart,
   };
 
   return isMobile ? (

@@ -183,16 +183,19 @@ export default function SearchResultsPage() {
         onQuickFilter: handleQuickFilter,
       }}
     >
+      {/* Header */}
       <div className="mb-3 flex items-center justify-between">
         <div>
-          <h1 className="text-sm font-semibold text-gray-900">
+          <h1 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
             Results for "{query || searchValue || "All"}"
           </h1>
-          <p className="text-[11px] text-gray-500">
+
+          <p className="text-[11px] text-gray-500 dark:text-gray-400">
             {pagination?.total || products?.length || 0} items found
           </p>
         </div>
 
+        {/* Sort */}
         <select
           value={`${sortBy}-${order}`}
           onChange={(e) => {
@@ -206,7 +209,7 @@ export default function SearchResultsPage() {
               updateParams({ sortBy: "createdAt", order: "desc", page: 1 });
             }
           }}
-          className="rounded-xl border border-gray-200 bg-white px-2 py-2 text-[11px] outline-none"
+          className="rounded-xl border border-gray-200 bg-white dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 px-2 py-2 text-[11px] outline-none"
         >
           <option value="createdAt-desc">Newest</option>
           <option value="price-asc">Price Low</option>
@@ -214,55 +217,58 @@ export default function SearchResultsPage() {
         </select>
       </div>
 
+      {/* Loading */}
       {loading ? <SearchResultsSkeleton /> : null}
 
+      {/* Error */}
       {!loading && error ? (
-        <div className="rounded-2xl bg-white p-6 text-center text-sm text-red-600 shadow-sm">
+        <div className="rounded-2xl bg-white dark:bg-gray-900 p-6 text-center text-sm text-red-600 dark:text-red-400 shadow-sm border border-gray-100 dark:border-gray-800">
           {error}
         </div>
       ) : null}
 
+      {/* Empty */}
       {!loading && !error && products?.length === 0 ? (
-        <div className="rounded-2xl bg-white p-6 text-center text-sm text-gray-500 shadow-sm">
+        <div className="rounded-2xl bg-white dark:bg-gray-900 p-6 text-center text-sm text-gray-500 dark:text-gray-400 shadow-sm border border-gray-100 dark:border-gray-800">
           No products found.
         </div>
       ) : null}
 
+      {/* Products */}
       {!loading && !error && products?.length > 0 ? (
         <div className="grid grid-cols-2 gap-3">
           {products.map((product) => (
-            <SearchResultCard
-              key={product._id}
-              product={product}
-            />
+            <SearchResultCard key={product._id} product={product} />
           ))}
         </div>
       ) : null}
 
+      {/* Pagination */}
       {!loading && pagination?.totalPages > 1 ? (
         <div className="mt-5 flex items-center justify-center gap-2">
           <button
             disabled={page <= 1}
             onClick={() => handlePageChange(page - 1)}
-            className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs disabled:opacity-50"
+            className="rounded-xl border border-gray-200 bg-white dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 px-3 py-2 text-xs disabled:opacity-50"
           >
             Prev
           </button>
 
-          <span className="text-xs text-gray-600">
+          <span className="text-xs text-gray-600 dark:text-gray-400">
             Page {page} / {pagination.totalPages}
           </span>
 
           <button
             disabled={page >= pagination.totalPages}
             onClick={() => handlePageChange(page + 1)}
-            className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs disabled:opacity-50"
+            className="rounded-xl border border-gray-200 bg-white dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 px-3 py-2 text-xs disabled:opacity-50"
           >
             Next
           </button>
         </div>
       ) : null}
 
+      {/* Drawer */}
       <SearchFilterDrawer
         open={filterOpen}
         onClose={() => setFilterOpen(false)}
