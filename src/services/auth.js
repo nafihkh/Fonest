@@ -1,5 +1,5 @@
 import { api } from "./api";
-import { setCredentials } from "../store/authSlice";
+import { setCredentials } from "../store/slices/authSlice";
 
 export async function refreshAccessToken(dispatch) {
   const res = await api.post("/auth/refresh"); // cookie sent automatically

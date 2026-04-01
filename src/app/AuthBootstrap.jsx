@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { api } from "../services/api";
-import { setCredentials, clearAuth, setBootstrapped } from "../store/authSlice";
+import { setCredentials, clearAuth, setBootstrapped } from "../store/slices/authSlice";
 
 export default function AuthBootstrap({ children }) {
   const dispatch = useDispatch();

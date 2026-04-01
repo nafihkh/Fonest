@@ -16,6 +16,7 @@ import ProfitAnalysis from "../pages/admin/ProfitAnalysis";
 import Reports from "../pages/admin/Reports";
 import Settings from "../pages/admin/Settings"
 import StockHistory from "../pages/admin/StockHistory";
+import AdminOrders from "../pages/admin/AdminOrders";
 import ProductDetails from "../pages/customer/Productdetails";
 import LandingPage from "../pages/customer/LandingPage";
 import ProfilePage from "../pages/customer/Profile"
@@ -28,7 +29,8 @@ import OrderDetailsPage from "../pages/customer/OrderDetailsPage";
 import UpdateDeliveryInstructions from "../pages/customer/UpdateDeliveryInstructionsPage";
 import CartCheckoutPage from "../pages/customer/CartCheckoutPage";
 import AddressPage from "../pages/customer/AddressPage";
-import AddNewAddressPage from "../pages/customer/AddNewAdressPage";
+import AddNewAddressPage from "../pages/customer/AddNewAddressPage";
+import EditProfilePage from "../pages/customer/EditProfilePage";
 
 const router = createBrowserRouter([
   {
@@ -39,121 +41,120 @@ const router = createBrowserRouter([
       {
         path: "/admin",
         element: (
-          
-            <ProtectedRoute role="admin">
-              <AdminDashboard />
-            </ProtectedRoute>
-          
+
+          <ProtectedRoute>
+            <AdminDashboard />
+          </ProtectedRoute>
+
         ),
       },
       {
         path: "/admin/addproduct",
         element: (
-          
-            <ProtectedRoute role="admin" >
-              <AddProduct />
-            </ProtectedRoute>
-          
+
+          <ProtectedRoute role="admin" >
+            <AddProduct />
+          </ProtectedRoute>
+
         ),
       },
       {
-        path: "/admin/brand&catogary",
+        path: "/admin/brand-category",
         element: (
-          
-            <ProtectedRoute role="admin" >
-              <AddBrandCategory />
-            </ProtectedRoute>
-          
+
+          <ProtectedRoute role="admin" >
+            <AddBrandCategory />
+          </ProtectedRoute>
+
         ),
       },
       {
         path: "/admin/users",
         element: (
-          
-            <ProtectedRoute role="admin" >
-              <Users />
-            </ProtectedRoute>
-          
+
+          <ProtectedRoute role="admin" >
+            <Users />
+          </ProtectedRoute>
+
         ),
       },
       {
         path: "/admin/products",
         element: (
-          
-            <ProtectedRoute role="admin" >
-              <Products />
-            </ProtectedRoute>
-          
+
+          <ProtectedRoute role="admin" >
+            <Products />
+          </ProtectedRoute>
+
         ),
       },
-      {
-        path: "/admin/products",
-        element: (
-          
-            <ProtectedRoute role="admin" >
-              <Products />
-            </ProtectedRoute>
-          
-        ),
-      },
+
       {
         path: "/admin/stock",
         element: (
-          
-            <ProtectedRoute role="admin" >
-              <StockOps />
-            </ProtectedRoute>
-          
+
+          <ProtectedRoute role="admin" >
+            <StockOps />
+          </ProtectedRoute>
+
         ),
       },
       {
         path: "/admin/returns",
         element: (
-          
-            <ProtectedRoute role="admin" >
-              <Returns />
-            </ProtectedRoute>
-          
+
+          <ProtectedRoute role="admin" >
+            <Returns />
+          </ProtectedRoute>
+
         ),
       },
       {
         path: "/admin/profit",
         element: (
-          
-            <ProtectedRoute role="admin" >
-              <ProfitAnalysis />
-            </ProtectedRoute>
-          
+
+          <ProtectedRoute role="admin" >
+            <ProfitAnalysis />
+          </ProtectedRoute>
+
         ),
       },
       {
         path: "/admin/reports",
         element: (
-          
-            <ProtectedRoute role="admin" >
-              <Reports />
-            </ProtectedRoute>
-          
+
+          <ProtectedRoute role="admin" >
+            <Reports />
+          </ProtectedRoute>
+
         ),
       },
       {
         path: "/admin/settings",
         element: (
-          
-            <ProtectedRoute role="admin" >
-              <Settings />
-            </ProtectedRoute>
-          
+
+          <ProtectedRoute role="admin" >
+            <Settings />
+          </ProtectedRoute>
+
         ),
       },
       {
         path: "/admin/stock-history",
         element: (
-          
-            <ProtectedRoute role="admin" >
-              <StockHistory />
-            </ProtectedRoute>
-          
+
+          <ProtectedRoute role="admin" >
+            <StockHistory />
+          </ProtectedRoute>
+
+        ),
+      },
+      {
+        path: "/admin/orders",
+        element: (
+          <ProtectedRoute role="admin">
+            <AdminOrders />
+          </ProtectedRoute>
         ),
       },
       {
@@ -174,6 +175,14 @@ const router = createBrowserRouter([
       },
       {
         path: "/home",
+        element: (
+          <ProtectedRoute role="customer">
+            <Home />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/shop",
         element: (
           <ProtectedRoute role="customer">
             <Home />
@@ -209,7 +218,7 @@ const router = createBrowserRouter([
         element: (
           <ProtectedRoute role="customer">
             <ProductDetails />
-          </ProtectedRoute> 
+          </ProtectedRoute>
         ),
       },
       {
@@ -217,7 +226,7 @@ const router = createBrowserRouter([
         element: (
           <ProtectedRoute role="customer">
             <BuyNowPage />
-          </ProtectedRoute> 
+          </ProtectedRoute>
         ),
       },
       {
@@ -236,7 +245,7 @@ const router = createBrowserRouter([
           </ProtectedRoute>
         ),
       },
-      
+
       {
         path: "/delivery-instructions/:id",
         element: (
@@ -269,7 +278,24 @@ const router = createBrowserRouter([
           </ProtectedRoute>
         ),
       },
-      
+      {
+        path: "/profile/edit",
+        element: (
+          <ProtectedRoute role="customer">
+            <EditProfilePage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        // Alias: mobile uses /orders/:id, desktop uses /orders/:id
+        path: "/orders/:id",
+        element: (
+          <ProtectedRoute role="customer">
+            <OrderDetailsPage />
+          </ProtectedRoute>
+        ),
+      },
+
     ],
   },
 ]);
