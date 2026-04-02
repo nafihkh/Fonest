@@ -24,7 +24,7 @@ export default function AuthPage() {
     setError("");
 
     try {
-      const res = await api.post("/auth/otp/send", { contact });
+      const res = await api.post("/api/auth/otp/send", { contact });
       setIsNewUser(res.data.isNewUser);
       console.log("OTP Response:", res.data);
       setStep(2);
