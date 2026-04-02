@@ -11,7 +11,7 @@ export default function AuthBootstrap({ children }) {
 
     (async () => {
       try {
-        const res = await api.post("/auth/refresh");
+        const res = await api.post("/api/auth/refresh");
         if (!alive) return;
         dispatch(setCredentials({ accessToken: res.data.accessToken, user: res.data.user || null }));
       } catch (e) {

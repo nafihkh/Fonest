@@ -28,7 +28,7 @@ api.interceptors.response.use(
     if (error.response?.status === 401 && !originalRequest._retry) {
       
       // Avoid intercepting auth routes to prevent loops
-      if (originalRequest.url?.includes("/auth/login") || originalRequest.url?.includes("/auth/refresh")) {
+      if (originalRequest.url?.includes("/auth/login") || originalRequest.url?.includes("/api/auth/refresh")) {
         return Promise.reject(error);
       }
 
