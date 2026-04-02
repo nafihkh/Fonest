@@ -48,7 +48,7 @@ export default function AuthPage() {
     setError("");
 
     try {
-      const res = await api.post("/auth/otp/verify", {
+      const res = await api.post("/api/auth/otp/verify", {
         contact,
         otp,
         ...(isNewUser ? { name } : {}),
@@ -70,7 +70,7 @@ export default function AuthPage() {
   const googleLogin = useGoogleLogin({
   onSuccess: async (tokenResponse) => {
     try {
-      const res = await api.post("/auth/google", {
+      const res = await api.post("/api/auth/google", {
         access_token: tokenResponse.access_token,
       });
 
