@@ -31,6 +31,9 @@ import CartCheckoutPage from "../pages/customer/CartCheckoutPage";
 import AddressPage from "../pages/customer/AddressPage";
 import AddNewAddressPage from "../pages/customer/AddNewAddressPage";
 import EditProfilePage from "../pages/customer/EditProfilePage";
+import NotFoundPage from "../pages/NotFoundPage";
+import ReturnPage from "../pages/customer/ReturnPage";
+import MyReturnsPage from "../pages/customer/MyReturnsPage";
 
 const router = createBrowserRouter([
   {
@@ -287,6 +290,22 @@ const router = createBrowserRouter([
         ),
       },
       {
+        path: "/returns/new",
+        element: (
+          <ProtectedRoute role="customer">
+            <ReturnPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/returns",
+        element: (
+          <ProtectedRoute role="customer">
+            <MyReturnsPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
         // Alias: mobile uses /orders/:id, desktop uses /orders/:id
         path: "/orders/:id",
         element: (
@@ -295,6 +314,8 @@ const router = createBrowserRouter([
           </ProtectedRoute>
         ),
       },
+
+      { path: "*", element: <NotFoundPage /> },
 
     ],
   },

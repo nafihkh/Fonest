@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { Link,useNavigate } from "react-router-dom";
 import {addToCart} from "../../../store/slices/cartSlice"
+import { MobileProductDetailSkeleton } from "../../ui/ProductDetailSkeleton";
 
 function formatPrice(value) {
   return `₹${Number(value || 0).toLocaleString("en-IN")}`;
@@ -101,7 +102,7 @@ export default function ProductDetailsMobileView({ product, loading, error }) {
   };
 
   if (loading && !product) {
-    return <div className="pb-6">Loading...</div>;
+    return <MobileProductDetailSkeleton />;
   }
 
   if (error && !product) {
@@ -115,11 +116,12 @@ export default function ProductDetailsMobileView({ product, loading, error }) {
   return (
     <>
       <div className="pb-6">
+        {/* Brand + Rating */}
         <div className="mb-3 flex items-start justify-between gap-3">
           <div>
-            <p className="text-[11px] font-medium text-gray-500">
+            <p className="text-[11px] font-medium text-gray-500 dark:text-gray-400">
               Brand:{" "}
-              <span className="text-gray-800">
+              <span className="text-gray-800 dark:text-gray-200">
                 {product.brand?.name || product.brand || "FONEST"}
               </span>
             </p>
@@ -127,22 +129,20 @@ export default function ProductDetailsMobileView({ product, loading, error }) {
 
           <div className="flex flex-col items-end">
             <Stars rating={product.rating || 0} size={13} />
-            <p className="mt-1 text-[11px] text-gray-500">
-              (
-              {Number(
-                product.reviewsCount || product.reviews?.length || 0
-              ).toLocaleString()}{" "}
-              reviews)
+            <p className="mt-1 text-[11px] text-gray-500 dark:text-gray-400">
+              ({Number(product.reviewsCount || product.reviews?.length || 0)})
             </p>
           </div>
         </div>
 
-        <h1 className="mb-3 text-[18px] font-bold leading-6 text-gray-900">
+        {/* Title */}
+        <h1 className="mb-3 text-[18px] font-bold leading-6 text-gray-900 dark:text-gray-100">
           {product.name}
         </h1>
 
+        {/* Image */}
         <div className="relative mb-4 overflow-hidden">
-          <div className="h-[300px] bg-gray-100">
+          <div className="h-[300px] bg-gray-100 dark:bg-gray-800">
             <img
               src={
                 product.images?.[activeImage]?.url ||
@@ -154,22 +154,16 @@ export default function ProductDetailsMobileView({ product, loading, error }) {
             />
           </div>
 
-          <button
-            onClick={prevImage}
-            className="absolute left-3 top-1/2 -translate-y-1/2"
-          >
+          <button onClick={prevImage} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-700 dark:text-gray-200">
             <ChevronLeft size={18} />
           </button>
 
-          <button
-            onClick={nextImage}
-            className="absolute right-3 top-1/2 -translate-y-1/2"
-          >
+          <button onClick={nextImage} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-700 dark:text-gray-200">
             <ChevronRight size={18} />
           </button>
 
-          <button className="absolute right-3 top-3">
-            <Heart size={18} className="text-gray-600" />
+          <button className="absolute right-3 top-3 text-gray-600 dark:text-gray-300">
+            <Heart size={18} />
           </button>
 
           <div className="absolute bottom-3 left-1/2 flex -translate-x-1/2 gap-1.5">
@@ -177,28 +171,32 @@ export default function ProductDetailsMobileView({ product, loading, error }) {
               <button
                 key={idx}
                 onClick={() => setActiveImage(idx)}
-                className={`h-2 rounded-full transition-all ${
-                  activeImage === idx ? "w-5 bg-gray-900" : "w-2 bg-white/80"
+                className={`h-2 rounded-full ${
+                  activeImage === idx
+                    ? "w-5 bg-gray-900 dark:bg-blue-500"
+                    : "w-2 bg-white/80 dark:bg-gray-600"
                 }`}
               />
             ))}
           </div>
         </div>
 
+        {/* Description */}
         <div className="mb-5">
-          <h2 className="mb-2 text-[14px] font-bold text-gray-900">
+          <h2 className="mb-2 text-[14px] font-bold text-gray-900 dark:text-gray-100">
             Description
           </h2>
-          <p className="text-[13px] leading-6 text-gray-600">
+          <p className="text-[13px] leading-6 text-gray-600 dark:text-gray-400">
             {product.description}
           </p>
         </div>
 
+        {/* Colors */}
         {product.colors?.length > 0 && (
           <div className="mb-5">
-            <h2 className="mb-3 text-[14px] font-bold text-gray-900">
+            <h2 className="mb-3 text-[14px] font-bold text-gray-900 dark:text-gray-100">
               Color:{" "}
-              <span className="font-medium text-gray-600">
+              <span className="font-medium text-gray-600 dark:text-gray-400">
                 {selectedColorData?.name || ""}
               </span>
             </h2>
@@ -212,25 +210,17 @@ export default function ProductDetailsMobileView({ product, loading, error }) {
                   <button
                     key={colorKey}
                     onClick={() => setSelectedColor(colorKey)}
-                    className={`overflow-hidden rounded-2xl border p-2 text-left transition ${
+                    className={`rounded-2xl border p-2 ${
                       active
-                        ? "border-blue-500 ring-1 ring-red-200"
-                        : "border-gray-200"
+                        ? "border-blue-500 ring-1 ring-blue-300 dark:ring-blue-800"
+                        : "border-gray-200 dark:border-gray-700"
                     }`}
                   >
-                    <div className="mx-auto mb-2 h-20 w-20 overflow-hidden rounded-xl bg-gray-100">
-                      <img
-                        src={
-                          color.image ||
-                          product.images?.[0]?.url ||
-                          product.images?.[0] ||
-                          ""
-                        }
-                        alt={color.name}
-                        className="h-full w-full object-cover"
-                      />
+                    <div className="mx-auto mb-2 h-20 w-20 rounded-xl bg-gray-100 dark:bg-gray-800">
+                      <img src={color.image || ""} className="h-full w-full object-cover" />
                     </div>
-                    <p className="text-center text-[12px] font-medium text-gray-800">
+
+                    <p className="text-center text-[12px] text-gray-800 dark:text-gray-200">
                       {color.name}
                     </p>
                   </button>
@@ -240,154 +230,79 @@ export default function ProductDetailsMobileView({ product, loading, error }) {
           </div>
         )}
 
-        {isSmartphone && product.variants?.length > 0 && (
-          <div className="mb-5 rounded-2xl">
-            <h2 className="mb-3 text-[14px] font-bold text-gray-900">
-              Variant
-            </h2>
-
-            <div className="grid grid-cols-2 gap-3">
-              {product.variants.map((variant, index) => {
-                const variantKey = variant.id || variant._id || index;
-                const active = selectedVariant === variantKey;
-
-                return (
-                  <button
-                    key={variantKey}
-                    onClick={() => setSelectedVariant(variantKey)}
-                    className={`rounded-2xl border px-3 py-3 text-[13px] font-medium transition ${
-                      active
-                        ? "border-blue-500 bg-blue-50 text-blue-500"
-                        : "border-gray-200 bg-white text-gray-700"
-                    }`}
-                  >
-                    {variant.label}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        <div className="mb-5 rounded-2xl">
-          <p className="text-[26px] font-bold text-gray-900">
+        {/* Price */}
+        <div className="mb-5">
+          <p className="text-[26px] font-bold text-gray-900 dark:text-white">
             {formatPrice(product.price)}
           </p>
 
           {!!product.compareAtPrice && (
-            <p className="mt-1 text-[14px] text-gray-400 line-through">
+            <p className="text-[14px] text-gray-400 line-through dark:text-gray-500">
               {formatPrice(product.compareAtPrice)}
             </p>
           )}
 
-          <div className="mt-3 flex items-center gap-2 text-[13px]">
-            <span
-              className={`rounded-full px-2.5 py-1 font-medium ${
-                product.stock > 0
-                  ? "bg-green-50 text-green-700"
-                  : "bg-red-50 text-red-500"
-              }`}
-            >
-              {product.stock > 0 ? "In Stock" : "Out of Stock"}
-            </span>
+          <span
+            className={`mt-2 inline-block rounded-full px-3 py-1 text-xs ${
+              product.stock > 0
+                ? "bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                : "bg-red-50 text-red-500 dark:bg-red-900/30 dark:text-red-400"
+            }`}
+          >
+            {product.stock > 0 ? "In Stock" : "Out of Stock"}
+          </span>
+        </div>
+
+        {/* Delivery */}
+        <div className="mb-5 flex gap-3">
+          <div className="rounded-full bg-blue-50 dark:bg-blue-900/30 p-2 text-blue-600">
+            <Truck size={16} />
+          </div>
+          <div>
+            <p className="text-[13px] font-semibold text-gray-900 dark:text-gray-100">
+              {product.freeDelivery ? "Free Delivery" : "Delivery Charges Applied"}
+            </p>
+            <p className="text-[12px] text-gray-600 dark:text-gray-400">
+              {product.estimatedDelivery}
+            </p>
           </div>
         </div>
 
-        <div className="mb-5 rounded-2xl">
-          <div className="flex items-start gap-3">
-            <div className="mt-0.5 rounded-full bg-blue-50 p-2 text-blue-600">
-              <Truck size={16} />
-            </div>
-
-            <div>
-              <p className="text-[13px] font-semibold text-gray-900">
-                {product.freeDelivery ? "Free Delivery" : "Delivery Charges Applied"}
-              </p>
-              <p className="mt-1 text-[12px] text-gray-600">
-                Estimated delivery: {product.estimatedDelivery || "Check at checkout"}
-              </p>
-              <p className="mt-1 text-[12px] text-gray-500">
-                Deliver to {product.deliverTo || "Select address"}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div className="mb-5 rounded-2xl">
-          <div className="flex items-center gap-3">
-            <div className="rounded-full bg-emerald-50 p-2 text-emerald-600">
-              <ShieldCheck size={16} />
-            </div>
-
-            <div>
-              <p className="text-[13px] font-semibold text-gray-900">
-                Secure Product
-              </p>
-              <p className="text-[12px] text-gray-500">
-                Genuine product with standard warranty support
-              </p>
-            </div>
-          </div>
-        </div>
-
+        {/* Buttons */}
         <div className="mb-6 grid grid-cols-2 gap-3">
-          <button onClick={handleAddToCart} className="flex items-center justify-center gap-2 rounded-2xl border border-blue-500 bg-white py-3.5 text-[14px] font-semibold text-blue-500">
+          <button
+            onClick={handleAddToCart}
+            className="flex items-center justify-center gap-2 rounded-2xl border border-blue-500 bg-white dark:bg-gray-900 text-blue-500 py-3.5 text-[14px] font-semibold"
+          >
             <ShoppingCart size={16} />
             Add to Cart
           </button>
 
           <button
             onClick={() => navigate(`/buy-now/${product._id}`)}
-            className="rounded-2xl bg-blue-500 py-3.5 text-[14px] font-semibold text-white"
+            className="rounded-2xl bg-blue-500 hover:bg-blue-600 py-3.5 text-white text-[14px] font-semibold"
           >
             Buy Now
           </button>
         </div>
 
-        {!!product.relatedProducts?.length && (
-          <div className="mb-6">
-            <div className="mb-3 flex items-center justify-between">
-              <h2 className="text-[15px] font-bold text-gray-900">
-                Related Products
-              </h2>
-              <Link to="/shop" className="text-[12px] font-medium text-blue-500">
-                View all
-              </Link>
-            </div>
-
-            <div className="no-scrollbar flex gap-3 overflow-x-auto pb-2">
-              {product.relatedProducts.map((item) => (
-                <RelatedCard key={item._id || item.id} product={item} />
-              ))}
-            </div>
-          </div>
-        )}
-
+        {/* Reviews */}
         {!!product.reviews?.length && (
-          <div className="rounded-2xl bg-white p-4 shadow-sm">
-            <h2 className="mb-4 text-[15px] font-bold text-gray-900">
+          <div className="rounded-2xl bg-white dark:bg-gray-900 p-4 shadow-sm border border-gray-100 dark:border-gray-800">
+            <h2 className="mb-4 text-[15px] font-bold text-gray-900 dark:text-gray-100">
               Product Reviews
             </h2>
 
-            <div className="space-y-4">
-              {product.reviews.map((review, index) => (
-                <div
-                  key={review.id || index}
-                  className="border-b border-gray-100 pb-4 last:border-b-0 last:pb-0"
-                >
-                  <div className="mb-1 flex items-center justify-between">
-                    <p className="text-[13px] font-semibold text-gray-900">
-                      {review.name}
-                    </p>
-                    <Stars rating={review.rating} size={12} />
-                  </div>
-
-                  <p className="text-[12px] leading-5 text-gray-600">
-                    {review.comment}
-                  </p>
-                </div>
-              ))}
-            </div>
+            {product.reviews.map((review, index) => (
+              <div key={index} className="border-b border-gray-100 dark:border-gray-800 pb-4">
+                <p className="text-[13px] font-semibold text-gray-900 dark:text-gray-100">
+                  {review.name}
+                </p>
+                <p className="text-[12px] text-gray-600 dark:text-gray-400">
+                  {review.comment}
+                </p>
+              </div>
+            ))}
           </div>
         )}
       </div>

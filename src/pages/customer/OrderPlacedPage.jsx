@@ -35,9 +35,38 @@ export default function OrderPlacedPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#f6f8fc] dark:bg-[#0b1120]">
-        <div className="text-[14px] font-medium text-gray-600 dark:text-gray-300">
-          Loading your order...
+      <div className="flex min-h-screen items-center justify-center bg-[#f6f8fc] dark:bg-[#0b1120] px-4">
+        <div className="w-full max-w-md animate-pulse space-y-6">
+          {/* Icon */}
+          <div className="mx-auto h-24 w-24 rounded-full bg-slate-200 dark:bg-slate-700" />
+          {/* Title */}
+          <div className="mx-auto h-7 w-48 rounded bg-slate-200 dark:bg-slate-700" />
+          <div className="mx-auto h-4 w-64 rounded bg-slate-200 dark:bg-slate-700" />
+          {/* Order card */}
+          <div className="rounded-3xl bg-white p-6 shadow-sm dark:bg-[#111827] space-y-4">
+            <div className="h-4 w-24 rounded bg-slate-200 dark:bg-slate-700" />
+            <div className="flex gap-4">
+              <div className="h-16 w-16 rounded-2xl bg-slate-200 dark:bg-slate-700" />
+              <div className="flex-1 space-y-2">
+                <div className="h-4 w-full rounded bg-slate-200 dark:bg-slate-700" />
+                <div className="h-3 w-2/3 rounded bg-slate-200 dark:bg-slate-700" />
+                <div className="h-4 w-20 rounded bg-slate-200 dark:bg-slate-700" />
+              </div>
+            </div>
+            <div className="border-t border-gray-100 pt-4 dark:border-gray-800 space-y-2">
+              {[1,2,3].map(i => (
+                <div key={i} className="flex justify-between">
+                  <div className="h-3 w-24 rounded bg-slate-200 dark:bg-slate-700" />
+                  <div className="h-3 w-16 rounded bg-slate-200 dark:bg-slate-700" />
+                </div>
+              ))}
+            </div>
+          </div>
+          {/* Buttons */}
+          <div className="space-y-3">
+            <div className="h-14 w-full rounded-2xl bg-slate-200 dark:bg-slate-700" />
+            <div className="h-14 w-full rounded-2xl bg-slate-200 dark:bg-slate-700" />
+          </div>
         </div>
       </div>
     );

@@ -1,5 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { MobileProfileSkeleton } from "../../ui/ProfileSkeleton";
 import {
   Settings,
   Camera,
@@ -114,9 +115,7 @@ export default function MobileProfilePage({
   if (loading) {
     return (
       <section className="pb-4">
-        <div className="rounded-3xl bg-white p-6 text-center text-gray-500 shadow-sm dark:bg-gray-900 dark:text-gray-400">
-          Loading profile...
-        </div>
+        <MobileProfileSkeleton />
       </section>
     );
   }

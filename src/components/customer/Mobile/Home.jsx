@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 import ProductCardSkeleton from "../../ui/ProductGridSkeleton";
 import MobileDealSkeleton from "../../ui/MobileDealSkeleton";
 import MobileCategorySkeleton from "../../ui/MobileCategorySkeleton";
@@ -15,6 +16,12 @@ import {
   TrendingUp,
   MapPin,
 } from "lucide-react";
+import {
+  fetchMyAddresses,
+  selectProfileAddresses,
+  selectAddressesLoading,
+} from "../../../store/slices/profileSlice";
+
 
 const defaultCategories = [
   {
@@ -167,7 +174,33 @@ export default function MobileHomePage({
   onAddToCart = () => {},
 }) {
   const navigate = useNavigate();
-  const [openAddressSheet, setOpenAddressSheet] = useState(false);  
+  const dispatch = useDispatch();
+  const [openAddressSheet, setOpenAddressSheet] = useState(false);
+
+  // Fetch addresses on mount so we always have fresh data
+  useEffect(() => {
+    dispatch(fetchMyAddresses());
+  }, [dispatch]);
+
+  const addresses = useSelector(selectProfileAddresses);
+  const addressesLoading = useSelector(selectAddressesLoading);
+
+  // Pick the default address, or the first one
+  const currentAddress = useMemo(() => {
+    if (!addresses?.length) return null;
+    return addresses.find((a) => a.isDefault) || addresses[0];
+  }, [addresses]);
+
+  // Build a short label: "Home • Kochi 682001"
+  const addressLabel = useMemo(() => {
+    if (!currentAddress) return null;
+    const type = currentAddress.label || currentAddress.type || "Home";
+    const city = currentAddress.city || "";
+    const pin = currentAddress.pincode || "";
+    const parts = [city, pin].filter(Boolean).join(" ");
+    return parts ? `${type} • ${parts}` : type;
+  }, [currentAddress]);
+
   if (loading) {
     return (
       <>
@@ -262,13 +295,26 @@ export default function MobileHomePage({
               <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">
                 Deliver To
               </p>
-              <p className="text-[14px] font-semibold text-gray-900 dark:text-gray-100 md:text-[16px]">
-                Home • Kochi 682001
-              </p>
+
+              {addressesLoading && !currentAddress ? (
+                /* Skeleton shimmer while addresses load */
+                <div className="mt-1 h-4 w-36 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
+              ) : addressLabel ? (
+                <p className="text-[14px] font-semibold text-gray-900 dark:text-gray-100 md:text-[16px]">
+                  {addressLabel}
+                </p>
+              ) : (
+                <p className="text-[13px] font-medium text-gray-400 dark:text-gray-500">
+                  No address selected
+                </p>
+              )}
             </div>
           </div>
 
-          <button onClick={() => setOpenAddressSheet(true)} className="rounded-xl border border-gray-200 bg-white px-4 py-2 text-[13px] font-semibold text-gray-700 shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 md:px-5 md:py-2.5 md:text-[14px]">
+          <button
+            onClick={() => setOpenAddressSheet(true)}
+            className="rounded-xl border border-gray-200 bg-white px-4 py-2 text-[13px] font-semibold text-gray-700 shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 md:px-5 md:py-2.5 md:text-[14px]"
+          >
             Change
           </button>
         </div>

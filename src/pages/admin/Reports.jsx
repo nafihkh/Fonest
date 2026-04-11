@@ -199,67 +199,44 @@ function Pagination({ page, totalPages, onPrev, onNext, onSet }) {
   );
 }
 
-// ---------- demo data ----------
-const bestProducts = [
-  { id: "bp1", name: "Titan Pro Smartwatch", meta: "Wearables • 1,240 Sold", value: "$372,000", growth: "+12.5%" },
-  { id: "bp2", name: "SonicBoom Wireless", meta: "Audio • 980 Sold", value: "$196,000", growth: "+8.2%" },
-  { id: "bp3", name: "AeroBook Ultra 14", meta: "Laptops • 450 Sold", value: "$540,000", growth: "+15.4%" },
-];
+// ---------- no demo data ----------
 
-const worstProducts = [
-  { id: "wp1", name: "Legacy Phone Case", meta: "Accessories • 12 Sold", value: "$240", growth: "-45.2%" },
-  { id: "wp2", name: "OldGen Tablet V2", meta: "Tablets • 8 Sold", value: "$1,600", growth: "-22.1%" },
-  { id: "wp3", name: "Wired Earbuds Classic", meta: "Audio • 4 Sold", value: "$80", growth: "-12.8%" },
-];
+function Donut({ categories = [] }) {
+  if (!categories || categories.length === 0) {
+      return <div className="h-[160px] flex items-center justify-center text-slate-400 text-[12px]">No category data</div>;
+  }
+  
+  const colors = ["#6366F1", "#EC4899", "#14B8A6", "#A855F7", "#F59E0B"];
+  
+  // Build conic gradient string
+  let currentPct = 0;
+  const gradientStops = categories.map((cat, idx) => {
+    const color = colors[idx % colors.length];
+    const stop = `${color} ${currentPct}% ${currentPct + cat.percent}%`;
+    currentPct += cat.percent;
+    return stop;
+  }).join(", ");
 
-const salesRows = [
-  { id: "r1", name: "Titan Pro Smartwatch", category: "Wearables", units: "1,240", revenue: "$372,000", stock: 450, status: "In Stock", growth: "+12.5%" },
-  { id: "r2", name: "SonicBoom Wireless", category: "Audio", units: "980", revenue: "$196,000", stock: 120, status: "In Stock", growth: "+8.2%" },
-  { id: "r3", name: "AeroBook Ultra 14", category: "Laptops", units: "450", revenue: "$540,000", stock: 15, status: "Low Stock", growth: "+15.4%" },
-  { id: "r4", name: "Legacy Phone Case", category: "Accessories", units: "12", revenue: "$240", stock: 1200, status: "In Stock", growth: "-45.2%" },
-  { id: "r5", name: "OldGen Tablet V2", category: "Tablets", units: "8", revenue: "$1,600", stock: 85, status: "In Stock", growth: "-22.1%" },
-  { id: "r6", name: "Wired Earbuds Classic", category: "Audio", units: "4", revenue: "$80", stock: 500, status: "In Stock", growth: "-12.8%" },
-];
-
-function Donut() {
-  // simple conic donut
   return (
     <div className="flex items-center gap-6">
       <div
         className="relative w-[160px] h-[160px] rounded-full"
         style={{
-          background:
-            "conic-gradient(#6366F1 0 45%, #EC4899 45% 70%, #14B8A6 70% 90%, #A855F7 90% 100%)",
+          background: `conic-gradient(${gradientStops})`,
         }}
       >
         <div className="absolute inset-[18px] bg-white dark:bg-slate-900 rounded-full border border-slate-200/70 dark:border-slate-700" />
       </div>
 
-      <div className="space-y-3 text-[12px]">
-        <div className="flex items-center gap-3">
-          <span className="w-3 h-3 rounded-full bg-indigo-600" />
-          <div className="text-slate-600 dark:text-slate-300">
-            <span className="font-bold text-slate-900 dark:text-slate-100">45%</span> Mobile
+      <div className="space-y-3 text-[12px] max-h-[160px] overflow-y-auto pr-2">
+        {categories.map((c, idx) => (
+          <div key={c.name} className="flex items-center gap-3">
+            <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: colors[idx % colors.length] }} />
+            <div className="text-slate-600 dark:text-slate-300">
+              <span className="font-bold text-slate-900 dark:text-slate-100">{c.percent}%</span> {c.name}
+            </div>
           </div>
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="w-3 h-3 rounded-full bg-pink-500" />
-          <div className="text-slate-600 dark:text-slate-300">
-            <span className="font-bold text-slate-900 dark:text-slate-100">25%</span> Wearables
-          </div>
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="w-3 h-3 rounded-full bg-teal-500" />
-          <div className="text-slate-600 dark:text-slate-300">
-            <span className="font-bold text-slate-900 dark:text-slate-100">20%</span> Audio
-          </div>
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="w-3 h-3 rounded-full bg-purple-500" />
-          <div className="text-slate-600 dark:text-slate-300">
-            <span className="font-bold text-slate-900 dark:text-slate-100">10%</span> Computing
-          </div>
-        </div>
+        ))}
       </div>
     </div>
   );
@@ -324,7 +301,12 @@ export default function Reports() {
               sub={stats ? `vs. last month ${stats.revenueDelta >= 0 ? "↑" : "↓"} ${Math.abs(stats.revenueDelta)}%` : ""}
               subTone={stats?.revenueDelta >= 0 ? "green" : "red"}
             />
-            <StatMini title="Return Rate" value="—" sub="Connect returns data" subTone="neutral" />
+            <StatMini
+              title="Return Rate"
+              value={loading ? "..." : `${stats?.returnRate ?? 0}%`}
+              sub={stats ? `Based on active returns` : ""}
+              subTone={stats?.returnRate > 5 ? "red" : "green"}
+            />
           </div>
 
           <div className="bg-indigo-600 text-white rounded-2xl shadow-sm p-5">
@@ -366,40 +348,24 @@ export default function Reports() {
         {/* donut + right cards */}
         <div className="grid grid-cols-1 xl:grid-cols-[1.2fr_360px] gap-6">
           <Card title="Category Distribution" subtitle="Sales volume share by gadget type">
-            <Donut />
-            <div className="mt-4 flex flex-wrap items-center gap-5 text-[11px] text-slate-500 dark:text-slate-400">
-              <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-indigo-600" /> Smartphones
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-pink-500" /> Wearables
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-teal-500" /> Audio
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-purple-500" /> Computing
-              </div>
-            </div>
+            <Donut categories={stats?.categoryData || []} />
           </Card>
 
           <div className="space-y-6">
             <Card title="Top Performing Brands">
               <div className="space-y-4">
-                {[
-                  { name: "Apple", pct: 42, tone: "indigo" },
-                  { name: "Samsung", pct: 28, tone: "rose" },
-                  { name: "Sony", pct: 15, tone: "emerald" },
-                  { name: "Dell", pct: 10, tone: "indigo" },
-                ].map((b) => (
+                {(stats?.brandData || []).map((b, i) => (
                   <div key={b.name} className="space-y-2">
                     <div className="flex items-center justify-between text-[12px] text-slate-700 dark:text-slate-200">
                       <span className="font-semibold">{b.name}</span>
                       <span className="font-bold">{b.pct}%</span>
                     </div>
-                    <ProgressBar value={b.pct} tone={b.tone} />
+                    <ProgressBar value={b.pct} tone={["indigo", "emerald", "rose", "amber"][i % 4]} />
                   </div>
                 ))}
+                {(!stats?.brandData || stats.brandData.length === 0) && (
+                   <div className="text-[12px] text-slate-500">No brand data available</div>
+                )}
               </div>
             </Card>
           </div>
@@ -419,26 +385,23 @@ export default function Reports() {
                 ? [1, 2, 3].map((i) => (
                     <div key={i} className="h-14 animate-pulse rounded-2xl bg-slate-100 dark:bg-slate-800" />
                   ))
-                : (stats?.topProducts?.length
-                    ? stats.topProducts
-                    : bestProducts
-                  ).map((p, idx) => (
-                    <div key={p.name || p.id}
+                : (stats?.topProducts || []).map((p, idx) => (
+                    <div key={p.id}
                       className="flex items-center justify-between gap-3 p-3 rounded-2xl border border-slate-200/70 dark:border-slate-700">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200/70 dark:border-slate-700 grid place-items-center">
-                          <span className="text-slate-700 dark:text-slate-200 text-[12px] font-bold">{(p.name || p.id)[0]}</span>
+                          <span className="text-slate-700 dark:text-slate-200 text-[12px] font-bold">{(p.name)[0]}</span>
                         </div>
                         <div>
                           <div className="text-[13px] font-semibold text-slate-900 dark:text-slate-100">{p.name}</div>
                           <div className="text-[11px] text-slate-500 dark:text-slate-400">
-                            {p.category || p.meta} • {p.units ? `${p.units} Sold` : ""}
+                            {p.category} • {p.units ? `${p.units} Sold` : ""}
                           </div>
                         </div>
                       </div>
                       <div className="text-right">
                         <div className="text-[13px] font-extrabold text-slate-900 dark:text-slate-100">
-                          {p.revenue ? `₹${p.revenue.toLocaleString("en-IN")}` : p.value}
+                          {fmtCurrency(p.revenue)}
                         </div>
                         {p.growth && (
                           <div className={`text-[11px] font-semibold ${p.growth.startsWith("-") ? "text-rose-500" : "text-emerald-600 dark:text-emerald-400"}`}>
@@ -461,7 +424,11 @@ export default function Reports() {
             }
           >
             <div className="space-y-3">
-              {worstProducts.map((p) => (
+              {loading 
+                 ? [1, 2, 3].map((i) => (
+                    <div key={i} className="h-14 animate-pulse rounded-2xl bg-slate-100 dark:bg-slate-800" />
+                  )) 
+                 : (stats?.worstProducts || []).map((p) => (
                 <div
                   key={p.id}
                   className="flex items-center justify-between gap-3 p-3 rounded-2xl border border-slate-200/70 dark:border-slate-700"
@@ -476,17 +443,21 @@ export default function Reports() {
                       <div className="text-[13px] font-semibold text-slate-900 dark:text-slate-100">
                         {p.name}
                       </div>
-                      <div className="text-[11px] text-slate-500 dark:text-slate-400">{p.meta}</div>
+                      <div className="text-[11px] text-slate-500 dark:text-slate-400">
+                          {p.category} • {p.units ? `${p.units} Sold` : ""}
+                      </div>
                     </div>
                   </div>
 
                   <div className="text-right">
                     <div className="text-[13px] font-extrabold text-slate-900 dark:text-slate-100">
-                      {p.value}
+                      {fmtCurrency(p.revenue)}
                     </div>
-                    <div className="text-[11px] text-rose-600 dark:text-rose-300 font-semibold">
-                      ↓ {p.growth}
-                    </div>
+                    {p.growth && (
+                       <div className="text-[11px] text-rose-600 dark:text-rose-300 font-semibold">
+                         ↓ {p.growth}
+                       </div>
+                    )}
                   </div>
                 </div>
               ))}
@@ -532,7 +503,9 @@ export default function Reports() {
               <div className="col-span-1 text-right">Growth</div>
             </div>
 
-            {salesRows.map((r) => (
+            {loading ? (
+                <div className="px-5 py-8 text-center text-slate-400 text-[12px]">Loading data...</div>
+            ) : (stats?.salesRows || []).map((r) => (
               <div
                 key={r.id}
                 className="grid grid-cols-12 px-5 py-4 border-t border-slate-200/70 dark:border-slate-700 items-center"
@@ -555,7 +528,7 @@ export default function Reports() {
                 </div>
 
                 <div className="col-span-2 text-right text-[12px] font-extrabold text-indigo-600 dark:text-indigo-300">
-                  {r.revenue}
+                  {fmtCurrency(r.revenue)}
                 </div>
 
                 <div className="col-span-2 flex items-center gap-3">
@@ -568,14 +541,14 @@ export default function Reports() {
                 </div>
 
                 <div className="col-span-1 flex justify-end">
-                  <Pill tone={r.growth.startsWith("-") ? "red" : "green"}>{r.growth}</Pill>
+                  <Pill tone={r.growth?.startsWith("-") ? "red" : "green"}>{r.growth || "+0%"}</Pill>
                 </div>
               </div>
             ))}
 
             <Pagination
               page={page}
-              totalPages={42}
+              totalPages={Math.max(1, Math.ceil((stats?.salesRows?.length || 0) / 10))}
               onPrev={() => setPage((p) => Math.max(1, p - 1))}
               onNext={() => setPage((p) => p + 1)}
               onSet={setPage}

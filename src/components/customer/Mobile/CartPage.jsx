@@ -166,9 +166,56 @@ export default function MobileCartPage({
   console.log(loading)
   if (loading) {
     return (
-      <section className="pb-6">
-        <div className="rounded-3xl bg-white p-6 text-center text-gray-500 shadow-sm dark:border dark:border-gray-800 dark:bg-gray-900">
-          Loading cart...
+      <section className="pb-6 animate-pulse">
+        {/* Header */}
+        <div className="mb-5 flex items-center gap-3">
+          <div className="h-5 w-5 rounded-full bg-slate-200 dark:bg-slate-700" />
+          <div className="h-6 w-36 rounded bg-slate-200 dark:bg-slate-700" />
+        </div>
+
+        {/* Delivery banner skeleton */}
+        <div className="mb-5 h-14 rounded-2xl bg-slate-200 dark:bg-slate-700" />
+
+        {/* Cart items skeleton */}
+        <div className="mb-6 rounded-3xl bg-white px-4 shadow-sm dark:border dark:border-gray-800 dark:bg-gray-900">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="border-b border-gray-100 py-4 last:border-b-0 dark:border-gray-800">
+              <div className="flex gap-3">
+                <div className="h-20 w-20 shrink-0 rounded-2xl bg-slate-200 dark:bg-slate-700" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-4 w-3/4 rounded bg-slate-200 dark:bg-slate-700" />
+                  <div className="h-3 w-1/3 rounded bg-slate-200 dark:bg-slate-700" />
+                  <div className="h-5 w-20 rounded bg-slate-200 dark:bg-slate-700" />
+                </div>
+                <div className="h-9 w-20 rounded-2xl bg-slate-200 dark:bg-slate-700" />
+              </div>
+              <div className="mt-4 flex items-center justify-between">
+                <div className="h-4 w-16 rounded bg-slate-200 dark:bg-slate-700" />
+                <div className="h-4 w-24 rounded bg-slate-200 dark:bg-slate-700" />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Summary skeleton */}
+        <div className="rounded-3xl bg-white p-4 shadow-sm dark:border dark:border-gray-800 dark:bg-gray-900">
+          <div className="space-y-3">
+            <div className="flex justify-between">
+              <div className="h-4 w-28 rounded bg-slate-200 dark:bg-slate-700" />
+              <div className="h-4 w-16 rounded bg-slate-200 dark:bg-slate-700" />
+            </div>
+            <div className="flex justify-between">
+              <div className="h-4 w-16 rounded bg-slate-200 dark:bg-slate-700" />
+              <div className="h-4 w-12 rounded bg-slate-200 dark:bg-slate-700" />
+            </div>
+            <div className="border-t border-gray-100 pt-4 dark:border-gray-800">
+              <div className="flex justify-between">
+                <div className="h-5 w-24 rounded bg-slate-200 dark:bg-slate-700" />
+                <div className="h-6 w-20 rounded bg-slate-200 dark:bg-slate-700" />
+              </div>
+            </div>
+          </div>
+          <div className="mt-5 h-14 w-full rounded-2xl bg-slate-200 dark:bg-slate-700" />
         </div>
       </section>
     );

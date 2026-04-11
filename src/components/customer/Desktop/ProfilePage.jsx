@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import SiteFooter from "../../layout/SiteFooter";
 import SiteHeader from "../../layout/SiteHeader";
+import { DesktopProfileSkeleton } from "../../ui/ProfileSkeleton";
 
 function ToggleRow({ title, description, checked, onChange, noBorder = false }) {
   return (
@@ -161,9 +162,7 @@ export default function ProfileSection({
             <div className="space-y-8 lg:col-span-2">
               {/* Loading / Error */}
               {loading && (
-                <div className="rounded-2xl border border-gray-100 bg-white p-10 text-center text-gray-400 dark:border-gray-800 dark:bg-gray-900">
-                  <i className="ri-loader-4-line animate-spin text-[36px]" />
-                </div>
+                <DesktopProfileSkeleton />
               )}
 
               {error && (

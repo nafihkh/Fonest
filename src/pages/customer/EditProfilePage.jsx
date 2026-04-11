@@ -102,8 +102,14 @@ export default function EditProfilePage() {
       </div>
 
       {loading ? (
-        <div className="grid place-items-center py-12">
-          <i className="ri-loader-4-line animate-spin text-[36px] text-blue-500" />
+        <div className="space-y-5 animate-pulse py-4">
+          {[1, 2, 3].map((i) => (
+            <div key={i}>
+              <div className="mb-1.5 h-4 w-24 rounded bg-slate-200 dark:bg-slate-700" />
+              <div className="h-12 w-full rounded-xl bg-slate-200 dark:bg-slate-700" />
+            </div>
+          ))}
+          <div className="h-12 w-full rounded-xl bg-slate-200 dark:bg-slate-700" />
         </div>
       ) : (
         <div className={isMobile ? "" : "rounded-2xl border border-gray-100 bg-white p-8 shadow-sm dark:border-gray-800 dark:bg-gray-900"}>

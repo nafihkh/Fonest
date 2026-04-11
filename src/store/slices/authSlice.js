@@ -4,7 +4,7 @@ import { createSlice } from "@reduxjs/toolkit";
 const loadFromStorage = (key) => {
   try {
     const serializedState = localStorage.getItem(key);
-    return serializedState ? JSON.parse(serializedState) : null;
+    return serializedState && serializedState !== "undefined" ? JSON.parse(serializedState) : null;
   } catch (err) {
     return null;
   }
@@ -12,8 +12,8 @@ const loadFromStorage = (key) => {
 
 const initialState = {
   accessToken: localStorage.getItem("accessToken") || null,
-  user: loadFromStorage("user") || null,
-  bootstrapped: false, // so UI knows auth check finished
+  user: loadFromStorage("user"), // Load user safely
+  bootstrapped: false, // Ensure bootstrapped is back to prevent UI flash
 };
 
 const authSlice = createSlice({

@@ -64,6 +64,12 @@ const initialState = {
   myOrdersMeta: null,
   myOrdersLoading: false,
   myOrdersError: "",
+  myOrdersFilters: {
+    page: 1,
+    month: "",
+    year: "",
+    status: "all",
+  },
 
   selectedOrder: null,
   selectedOrderLoading: false,
@@ -85,6 +91,12 @@ const orderSlice = createSlice({
     clearSelectedOrder(state) {
       state.selectedOrder = null;
       state.selectedOrderError = "";
+    },
+    setMyOrdersFilters(state, action) {
+      state.myOrdersFilters = { ...state.myOrdersFilters, ...action.payload };
+    },
+    resetMyOrdersFilters(state) {
+      state.myOrdersFilters = { page: 1, month: "", year: "", status: "all" };
     },
   },
   extraReducers: (builder) => {
@@ -158,12 +170,13 @@ const orderSlice = createSlice({
   },
 });
 
-export const { clearSelectedOrder } = orderSlice.actions;
+export const { clearSelectedOrder, setMyOrdersFilters, resetMyOrdersFilters } = orderSlice.actions;
 
 export const selectMyOrders = (state) => state.orders.myOrders;
 export const selectMyOrdersMeta = (state) => state.orders.myOrdersMeta;
 export const selectMyOrdersLoading = (state) => state.orders.myOrdersLoading;
 export const selectMyOrdersError = (state) => state.orders.myOrdersError;
+export const selectMyOrdersFilters = (state) => state.orders.myOrdersFilters;
 
 export const selectSelectedOrder = (state) => state.orders.selectedOrder;
 export const selectSelectedOrderLoading = (state) => state.orders.selectedOrderLoading;

@@ -9,7 +9,8 @@ export const api = axios.create({
 
 // Request interceptor: Attach access token
 api.interceptors.request.use((config) => {
-  const token = store.getState()?.auth?.accessToken; 
+  // Read token from Redux store first, fallback to localStorage
+  const token = store.getState()?.auth?.accessToken || localStorage.getItem("accessToken"); 
 
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
@@ -17,6 +18,22 @@ api.interceptors.request.use((config) => {
 
   return config;
 });
+
+// Variables for managing concurrent refresh requests
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach(prom => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+
+  failedQueue = [];
+};
 
 // Response interceptor: Silent refresh on 401
 api.interceptors.response.use(
@@ -32,7 +49,22 @@ api.interceptors.response.use(
         return Promise.reject(error);
       }
 
+      if (isRefreshing) {
+        // If already refreshing, queue the request until refresh is complete
+        return new Promise(function(resolve, reject) {
+          failedQueue.push({ resolve, reject });
+        })
+          .then(token => {
+            originalRequest.headers.Authorization = `Bearer ${token}`;
+            return api(originalRequest);
+          })
+          .catch(err => {
+            return Promise.reject(err);
+          });
+      }
+
       originalRequest._retry = true;
+      isRefreshing = true;
 
       try {
         // Call refresh token endpoint
@@ -42,20 +74,31 @@ api.interceptors.response.use(
           { withCredentials: true }
         );
         
+        const newAccessToken = response.data.accessToken;
+
         // Update store (and automatically localStorage via our updated slice)
         store.dispatch(setCredentials({
-          accessToken: response.data.accessToken,
+          accessToken: newAccessToken,
           user: response.data.user
         }));
 
+        processQueue(null, newAccessToken);
+        
         // Retry the original request with the new token
-        originalRequest.headers.Authorization = `Bearer ${response.data.accessToken}`;
+        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
         return api(originalRequest);
         
       } catch (refreshError) {
-        // If refresh fails (because refresh token is totally expired), clear state
+        processQueue(refreshError, null);
+        // If refresh fails (because refresh token is expired/invalid), clear state
         store.dispatch(clearAuth());
+        // Redirect user to login page
+        if (window.location.pathname !== "/login") {
+            window.location.href = "/login";
+        }
         return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
       }
     }
 
