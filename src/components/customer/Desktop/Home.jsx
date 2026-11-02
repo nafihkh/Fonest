@@ -42,6 +42,9 @@ export default function ShopPage({
 
   clearFilters,
   handleSortChange,
+  onAddToCart,
+  page = 1,
+  setPage,
 }) {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-[radial-gradient(circle_at_top,_#1e3a8a_0%,_#111827_35%,_#030712_100%)]">
@@ -230,18 +233,12 @@ export default function ShopPage({
 
                           {product.compareAtPrice > product.price && (
                             <div className="absolute right-4 top-4 rounded-full bg-blue-600 px-3 py-1.5 text-[12px] font-bold text-white dark:bg-blue-500">
-                              -
-                              {Math.round(
-                                ((product.compareAtPrice - product.price) /
-                                  product.compareAtPrice) *
-                                  100
-                              )}
-                              %
+                              -{Math.round(((product.compareAtPrice - product.price) / product.compareAtPrice) * 100)}%
                             </div>
                           )}
 
                           {product.isFeatured && (
-                            <div className="absolute left-4 top-4 rounded-full bg-emerald-500 px-3 py-1.5 text-[12px] font-bold text-white dark:bg-emerald-500">
+                            <div className="absolute left-4 top-4 rounded-full bg-emerald-500 px-3 py-1.5 text-[12px] font-bold text-white">
                               NEW
                             </div>
                           )}
@@ -254,9 +251,7 @@ export default function ShopPage({
 
                           <div className="mb-2 flex items-center gap-1">
                             <StarRating rating={4} />
-                            <span className="ml-1 text-[13px] text-gray-500 dark:text-gray-400">
-                              (120)
-                            </span>
+                            <span className="ml-1 text-[13px] text-gray-500 dark:text-gray-400">(120)</span>
                           </div>
 
                           <h3 className="mb-2 line-clamp-2 text-[15px] font-semibold text-gray-900 dark:text-gray-100">
@@ -267,7 +262,6 @@ export default function ShopPage({
                             <span className="text-[18px] font-bold text-gray-900 dark:text-gray-100">
                               ₹{product.price}
                             </span>
-
                             {product.compareAtPrice > 0 && (
                               <span className="text-[14px] text-gray-400 line-through dark:text-gray-500">
                                 ₹{product.compareAtPrice}
@@ -277,6 +271,11 @@ export default function ShopPage({
 
                           <button
                             type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              onAddToCart?.(product);
+                            }}
                             className="w-full rounded-xl bg-blue-600 py-2.5 text-[14px] font-medium text-white transition-all duration-300 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
                           >
                             Add to Cart

@@ -19,7 +19,9 @@ import {
   Monitor,
   Eye,
   EyeOff,
+  BellRing
 } from "lucide-react";
+import { subscribeToWebPush, unsubscribeFromWebPush } from "../../services/webPushService";
 
 function Card({ title, subtitle, icon: Icon, children, right }) {
   return (
@@ -248,6 +250,18 @@ export default function Settings() {
   const [isEditingProfile, setIsEditingProfile] = useState(false);
 
   const [activeTab, setActiveTab] = useState("profile");
+  const [pushEnabled, setPushEnabled] = useState(false);
+
+  // Read current push subscription state on mount
+  useEffect(() => {
+    if ("serviceWorker" in navigator && "PushManager" in window) {
+      navigator.serviceWorker.ready.then(reg => {
+        reg.pushManager.getSubscription().then(sub => {
+          if (sub) setPushEnabled(true);
+        });
+      });
+    }
+  }, []);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -449,6 +463,23 @@ export default function Settings() {
     }
   };
 
+  const handlePushToggle = async (enable) => {
+    try {
+      if (enable) {
+        await subscribeToWebPush();
+        setPushEnabled(true);
+        dispatch(showToast({ type: "success", title: "Push Enabled", message: "You will now receive background notifications." }));
+      } else {
+        await unsubscribeFromWebPush();
+        setPushEnabled(false);
+        dispatch(showToast({ type: "success", title: "Push Disabled", message: "Background notifications turned off." }));
+      }
+    } catch (err) {
+      console.error(err);
+      dispatch(showToast({ type: "error", title: "Action Failed", message: err.message || "Could not modify push settings." }));
+    }
+  };
+
   const saveSecurity = async () => {
     try {
       setSaving(true);
@@ -553,7 +584,7 @@ export default function Settings() {
             icon={saving ? Loader2 : Save}
             disabled={saving}
             onClick={() => {
-              if (activeTab === "profile") saveProfile();
+              if (activeTab === "profile") handleSaveProfile();
               if (activeTab === "appearance") saveAppearance();
               if (activeTab === "notifications") saveNotifications();
               if (activeTab === "security") saveSecurity();
@@ -770,6 +801,46 @@ export default function Settings() {
                       subtitle="Control which operational alerts you receive."
                       icon={Bell}
                     >
+                      <div className="space-y-1 mb-6">
+                         <div className="bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-100 dark:border-indigo-500/20 rounded-2xl p-4 flex items-center justify-between gap-4">
+                            <div className="flex items-start gap-3">
+                               <div className="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-500/20 grid place-items-center text-indigo-600 dark:text-indigo-300">
+                                  <BellRing size={20} />
+                               </div>
+                               <div>
+                                  <div className="text-[13px] font-bold text-slate-900 dark:text-slate-100">
+                                     Background Push Notifications
+                                  </div>
+                                  <div className="text-[12px] text-slate-500 dark:text-slate-400 mt-0.5">
+                                     Receive native alerts on your device even when the dashboard is closed.
+                                  </div>
+                               </div>
+                            </div>
+                            <Toggle
+                               checked={pushEnabled}
+                               onChange={handlePushToggle}
+                            />
+                         </div>
+                         {pushEnabled && (
+                           <div className="flex justify-end pr-2">
+                             <button
+                               type="button"
+                               onClick={async () => {
+                                 try {
+                                   await api.post("/api/settings/push/test");
+                                   dispatch(showToast({ type: "success", title: "Test Triggered", message: "Push sent successfully!" }));
+                                 } catch (err) {
+                                   dispatch(showToast({ type: "error", title: "Test Failed", message: err.response?.data?.message || err.message }));
+                                 }
+                               }}
+                               className="text-[12px] font-semibold text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300"
+                             >
+                               Send Test Notification
+                             </button>
+                           </div>
+                         )}
+                      </div>
+
                       <div className="space-y-1">
                         <SettingRow
                           title="Low Stock Alerts"

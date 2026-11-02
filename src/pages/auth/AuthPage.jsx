@@ -5,7 +5,7 @@ import { GoogleLogin } from "@react-oauth/google";
 import { useGoogleLogin } from "@react-oauth/google";
 import { AnimatePresence, motion } from "framer-motion";
 import { useDispatch } from "react-redux";
-import { setCredentials } from "../../store/authSlice";
+import { setCredentials } from "../../store/slices/authSlice";
 
 
 export default function AuthPage() {
@@ -24,7 +24,7 @@ export default function AuthPage() {
     setError("");
 
     try {
-      const res = await api.post("/auth/otp/send", { contact });
+      const res = await api.post("/api/auth/otp/send", { contact });
       setIsNewUser(res.data.isNewUser);
       console.log("OTP Response:", res.data);
       setStep(2);
@@ -48,7 +48,7 @@ export default function AuthPage() {
     setError("");
 
     try {
-      const res = await api.post("/auth/otp/verify", {
+      const res = await api.post("/api/auth/otp/verify", {
         contact,
         otp,
         ...(isNewUser ? { name } : {}),
@@ -70,7 +70,7 @@ export default function AuthPage() {
   const googleLogin = useGoogleLogin({
   onSuccess: async (tokenResponse) => {
     try {
-      const res = await api.post("/auth/google", {
+      const res = await api.post("/api/auth/google", {
         access_token: tokenResponse.access_token,
       });
 

@@ -172,10 +172,14 @@ function ProductRow({ item }) {
 }
 
 function SummaryCard({ order }) {
+  const navigate = useNavigate();
   const subtotal = order?.pricing?.subtotal || 0;
   const shipping = order?.pricing?.deliveryCharge || 0;
   const tax = order?.pricing?.tax || 0;
   const total = order?.pricing?.total || subtotal + shipping + tax;
+  const isDelivered = (order?.orderStatus || "").toLowerCase() === "delivered";
+  const returnInfo = order?.returnInfo;
+  const isReturning = !!returnInfo;
 
   return (
     <div className="sticky top-28 rounded-2xl border border-gray-100 bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
@@ -185,41 +189,25 @@ function SummaryCard({ order }) {
 
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <span className="text-[14px] text-gray-600 dark:text-gray-400">
-            Subtotal
-          </span>
-          <span className="text-[15px] font-semibold text-gray-900 dark:text-gray-100">
-            {formatPrice(subtotal)}
-          </span>
+          <span className="text-[14px] text-gray-600 dark:text-gray-400">Subtotal</span>
+          <span className="text-[15px] font-semibold text-gray-900 dark:text-gray-100">{formatPrice(subtotal)}</span>
         </div>
 
         <div className="flex items-center justify-between">
-          <span className="text-[14px] text-gray-600 dark:text-gray-400">
-            Delivery
-          </span>
-          <span className="text-[15px] font-semibold text-blue-600 dark:text-blue-400">
-            {shipping === 0 ? "FREE" : formatPrice(shipping)}
-          </span>
+          <span className="text-[14px] text-gray-600 dark:text-gray-400">Delivery</span>
+          <span className="text-[15px] font-semibold text-blue-600 dark:text-blue-400">{shipping === 0 ? "FREE" : formatPrice(shipping)}</span>
         </div>
 
         <div className="flex items-center justify-between">
-          <span className="text-[14px] text-gray-600 dark:text-gray-400">
-            Tax
-          </span>
-          <span className="text-[15px] font-semibold text-gray-900 dark:text-gray-100">
-            {formatPrice(tax)}
-          </span>
+          <span className="text-[14px] text-gray-600 dark:text-gray-400">Tax</span>
+          <span className="text-[15px] font-semibold text-gray-900 dark:text-gray-100">{formatPrice(tax)}</span>
         </div>
       </div>
 
       <div className="my-6 border-t border-gray-200 pt-4 dark:border-gray-800">
         <div className="flex items-center justify-between">
-          <span className="text-[16px] font-bold text-gray-900 dark:text-gray-100">
-            Grand Total
-          </span>
-          <span className="text-[24px] font-bold text-blue-600 dark:text-blue-400">
-            {formatPrice(total)}
-          </span>
+          <span className="text-[16px] font-bold text-gray-900 dark:text-gray-100">Grand Total</span>
+          <span className="text-[24px] font-bold text-blue-600 dark:text-blue-400">{formatPrice(total)}</span>
         </div>
       </div>
 
@@ -229,10 +217,15 @@ function SummaryCard({ order }) {
           Share Order
         </button>
 
-        <button className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gray-100 py-4 text-[15px] font-semibold text-gray-900 transition-all duration-300 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-100 dark:hover:bg-gray-700">
-          <RotateCcw size={16} />
-          Return / Replace
-        </button>
+        {isDelivered && !isReturning && (
+          <button
+            onClick={() => navigate(`/returns/new?orderId=${order._id}`)}
+            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-orange-500 py-4 text-[15px] font-semibold text-white transition-all duration-300 hover:bg-orange-600"
+          >
+            <RotateCcw size={16} />
+            Return / Replace
+          </button>
+        )}
       </div>
     </div>
   );
@@ -251,9 +244,79 @@ export default function OrderDetailsDesktop({
       <div className="min-h-screen bg-gray-50 dark:bg-[radial-gradient(circle_at_top,_#1e3a8a_0%,_#111827_35%,_#030712_100%)]">
         <Header />
         <div className="pb-20 pt-24">
-          <div className="mx-auto max-w-[1600px] px-6">
-            <div className="rounded-2xl border border-gray-100 bg-white p-10 text-center dark:border-gray-800 dark:bg-gray-900">
-              Loading order...
+          <div className="mx-auto max-w-[1600px] px-6 animate-pulse">
+            {/* Back + title */}
+            <div className="mb-8">
+              <div className="mb-3 h-4 w-16 rounded bg-slate-200 dark:bg-slate-700" />
+              <div className="h-10 w-56 rounded bg-slate-200 dark:bg-slate-700" />
+              <div className="mt-2 h-4 w-48 rounded bg-slate-200 dark:bg-slate-700" />
+            </div>
+            <div className="grid grid-cols-1 gap-8 xl:grid-cols-3">
+              <div className="space-y-8 xl:col-span-2">
+                {/* Progress */}
+                <div className="rounded-2xl border border-gray-100 bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
+                  <div className="mb-5 h-5 w-36 rounded bg-slate-200 dark:bg-slate-700" />
+                  <div className="grid grid-cols-4 gap-8">
+                    {[1,2,3,4].map(i => (
+                      <div key={i} className="flex flex-col items-center gap-2">
+                        <div className="h-14 w-14 rounded-full bg-slate-200 dark:bg-slate-700" />
+                        <div className="h-4 w-16 rounded bg-slate-200 dark:bg-slate-700" />
+                        <div className="h-3 w-24 rounded bg-slate-200 dark:bg-slate-700" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                {/* Items */}
+                <div className="rounded-2xl border border-gray-100 bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
+                  <div className="mb-5 h-5 w-28 rounded bg-slate-200 dark:bg-slate-700" />
+                  {[1,2].map(i => (
+                    <div key={i} className="mb-4 flex gap-5">
+                      <div className="h-28 w-28 rounded-xl bg-slate-200 dark:bg-slate-700" />
+                      <div className="flex-1 space-y-2">
+                        <div className="h-4 w-48 rounded bg-slate-200 dark:bg-slate-700" />
+                        <div className="h-4 w-32 rounded bg-slate-200 dark:bg-slate-700" />
+                        <div className="h-6 w-20 rounded bg-slate-200 dark:bg-slate-700" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="grid grid-cols-2 gap-8">
+                  {[1,2].map(i => (
+                    <div key={i} className="rounded-2xl border border-gray-100 bg-white p-6 dark:border-gray-800 dark:bg-gray-900 space-y-4">
+                      <div className="h-5 w-36 rounded bg-slate-200 dark:bg-slate-700" />
+                      {[1,2,3].map(j => (
+                        <div key={j} className="flex gap-3">
+                          <div className="h-4 w-4 rounded bg-slate-200 dark:bg-slate-700" />
+                          <div className="flex-1 space-y-1">
+                            <div className="h-3 w-20 rounded bg-slate-200 dark:bg-slate-700" />
+                            <div className="h-4 w-full rounded bg-slate-200 dark:bg-slate-700" />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              </div>
+              {/* Summary */}
+              <div className="rounded-2xl border border-gray-100 bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
+                <div className="mb-6 h-5 w-32 rounded bg-slate-200 dark:bg-slate-700" />
+                <div className="space-y-4">
+                  {[1,2,3].map(i => (
+                    <div key={i} className="flex justify-between">
+                      <div className="h-4 w-20 rounded bg-slate-200 dark:bg-slate-700" />
+                      <div className="h-4 w-16 rounded bg-slate-200 dark:bg-slate-700" />
+                    </div>
+                  ))}
+                  <div className="border-t pt-4 flex justify-between">
+                    <div className="h-5 w-24 rounded bg-slate-200 dark:bg-slate-700" />
+                    <div className="h-6 w-20 rounded bg-slate-200 dark:bg-slate-700" />
+                  </div>
+                </div>
+                <div className="mt-6 space-y-3">
+                  <div className="h-12 w-full rounded-2xl bg-slate-200 dark:bg-slate-700" />
+                  <div className="h-12 w-full rounded-2xl bg-slate-200 dark:bg-slate-700" />
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -318,6 +381,22 @@ export default function OrderDetailsDesktop({
 
   const currentStep = stepMap[status] || 1;
 
+  const returnStepMap = {
+    requested: 1,
+    approved: 1,
+    picked_up: 2,
+    received: 3,
+    refunded: 4,
+  };
+
+  const returnInfo = order.returnInfo;
+  const isReturning = !!returnInfo;
+  const currentReturnStep = isReturning ? (returnStepMap[returnInfo.status] || 1) : 0;
+  const returnStatus = isReturning ? returnInfo.status : null;
+  const isReturnRejected = returnStatus === "rejected";
+
+  const displayTitle = isReturning ? (isReturnRejected ? "Return Rejected" : "Return in Progress") : statusTitle;
+
   const fullAddress = `${order.address?.fullName || "Customer"}, ${
     order.address?.line1 || ""
   } ${order.address?.line2 || ""}, ${order.address?.city || ""}, ${
@@ -346,7 +425,7 @@ export default function OrderDetailsDesktop({
               </button>
 
               <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100">
-                {statusTitle}
+                {displayTitle}
               </h1>
 
               <p className="mt-2 text-[15px] text-gray-500 dark:text-gray-400">
@@ -367,42 +446,109 @@ export default function OrderDetailsDesktop({
 
           <div className="grid grid-cols-1 gap-8 xl:grid-cols-3">
             <div className="space-y-8 xl:col-span-2">
-              <InfoCard title="Shipping Progress">
-                <div className="grid grid-cols-4 gap-8 md:grid-cols-4">
-                  <StatusStep
-                    icon={PackageCheck}
-                    title="Placed"
-                    subtitle="Your order has been placed"
-                    completed={!isCancelled && currentStep > 1}
-                    active={!isCancelled && currentStep === 1}
-                  />
+              {isReturning ? (
+                <InfoCard title="Return Progress">
+                  <div className="mb-4 flex items-center justify-between">
+                    <p className="text-[14px] uppercase font-bold text-blue-500 dark:text-blue-400">
+                      Ticket: {returnInfo._id?.slice(-6)?.toUpperCase() || "RET"}
+                    </p>
+                  </div>
+                  
+                  {isReturnRejected ? (
+                    <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-center dark:border-red-500/20 dark:bg-red-500/10">
+                      <RotateCcw size={32} className="mx-auto mb-3 text-red-500 dark:text-red-400" />
+                      <h4 className="text-[16px] font-bold text-red-600 dark:text-red-400">Return Request Rejected</h4>
+                      <p className="mt-2 text-[15px] text-red-500/80 dark:text-red-400/80">
+                        {returnInfo.adminNote || "Your return request could not be approved at this time."}
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-4 gap-8 md:grid-cols-4">
+                      <StatusStep
+                        icon={RotateCcw}
+                        title="Requested"
+                        subtitle="Return request submitted"
+                        completed={currentReturnStep > 1}
+                        active={currentReturnStep === 1}
+                      />
 
-                  <StatusStep
-                    icon={PackageCheck}
-                    title="Packed"
-                    subtitle="Packed and ready for dispatch"
-                    completed={!isCancelled && currentStep > 2}
-                    active={!isCancelled && currentStep === 2}
-                  />
+                      <StatusStep
+                        icon={PackageCheck}
+                        title="Picked Up"
+                        subtitle="Item collected from address"
+                        completed={currentReturnStep > 2}
+                        active={currentReturnStep === 2}
+                      />
 
-                  <StatusStep
-                    icon={Truck}
-                    title="Shipped"
-                    subtitle="On the way to your address"
-                    completed={!isCancelled && currentStep > 3}
-                    active={!isCancelled && currentStep === 3}
-                  />
+                      <StatusStep
+                        icon={House}
+                        title="Received"
+                        subtitle="Received at our hub"
+                        completed={currentReturnStep > 3}
+                        active={currentReturnStep === 3}
+                      />
 
-                  <StatusStep
-                    icon={House}
-                    title="Delivered"
-                    subtitle="Delivered successfully"
-                    completed={!isCancelled && currentStep === 4}
-                    active={false}
-                    last
-                  />
-                </div>
-              </InfoCard>
+                      <StatusStep
+                        icon={CreditCard}
+                        title="Refunded"
+                        subtitle="Refund has been processed"
+                        completed={currentReturnStep === 4}
+                        active={false}
+                        last
+                      />
+                    </div>
+                  )}
+                  
+                  <div className="mt-8 border-t border-gray-100 pt-6 dark:border-gray-800">
+                    <p className="mb-2 text-[14px] font-semibold text-gray-500 dark:text-gray-400">Return Reason</p>
+                    <p className="text-[15px] text-gray-700 dark:text-gray-300">
+                      {returnInfo.reason || "No reason provided."}
+                    </p>
+                    {returnInfo.adminNote && !isReturnRejected && (
+                      <div className="mt-4 rounded-xl bg-blue-50 p-4 text-[14px] font-medium text-blue-700 dark:bg-blue-500/10 dark:text-blue-400">
+                        <span className="font-bold">Note from FONEST:</span> {returnInfo.adminNote}
+                      </div>
+                    )}
+                  </div>
+                </InfoCard>
+              ) : (
+                <InfoCard title="Shipping Progress">
+                  <div className="grid grid-cols-4 gap-8 md:grid-cols-4">
+                    <StatusStep
+                      icon={PackageCheck}
+                      title="Placed"
+                      subtitle="Your order has been placed"
+                      completed={!isCancelled && currentStep > 1}
+                      active={!isCancelled && currentStep === 1}
+                    />
+
+                    <StatusStep
+                      icon={PackageCheck}
+                      title="Packed"
+                      subtitle="Packed and ready for dispatch"
+                      completed={!isCancelled && currentStep > 2}
+                      active={!isCancelled && currentStep === 2}
+                    />
+
+                    <StatusStep
+                      icon={Truck}
+                      title="Shipped"
+                      subtitle="On the way to your address"
+                      completed={!isCancelled && currentStep > 3}
+                      active={!isCancelled && currentStep === 3}
+                    />
+
+                    <StatusStep
+                      icon={House}
+                      title="Delivered"
+                      subtitle="Delivered successfully"
+                      completed={!isCancelled && currentStep === 4}
+                      active={false}
+                      last
+                    />
+                  </div>
+                </InfoCard>
+              )}
 
               <InfoCard title="Ordered Items">
                 <div className="space-y-4">

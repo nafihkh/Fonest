@@ -2,20 +2,28 @@ import React from "react";
 
 function SkeletonCard() {
   return (
-    <div className="overflow-hidden rounded-2xl bg-white shadow-sm">
-      <div className="aspect-square animate-pulse bg-gray-200" />
+    <div className="overflow-hidden rounded-2xl bg-white dark:bg-gray-900 shadow-sm border border-gray-100 dark:border-gray-800">
+      {/* Image */}
+      <div className="aspect-square animate-pulse bg-gray-200 dark:bg-gray-800" />
 
       <div className="p-3">
-        <div className="mb-2 h-4 w-3/4 animate-pulse rounded bg-gray-200" />
-        <div className="mb-2 h-3 w-1/2 animate-pulse rounded bg-gray-200" />
-        <div className="mb-3 h-3 w-1/3 animate-pulse rounded bg-gray-200" />
+        {/* Title */}
+        <div className="mb-2 h-4 w-3/4 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
 
+        {/* Brand */}
+        <div className="mb-2 h-3 w-1/2 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
+
+        {/* Small text */}
+        <div className="mb-3 h-3 w-1/3 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
+
+        {/* Price */}
         <div className="mb-3 flex items-center gap-2">
-          <div className="h-4 w-16 animate-pulse rounded bg-gray-200" />
-          <div className="h-3 w-12 animate-pulse rounded bg-gray-200" />
+          <div className="h-4 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
+          <div className="h-3 w-12 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
         </div>
 
-        <div className="h-10 w-full animate-pulse rounded-xl bg-gray-200" />
+        {/* Button */}
+        <div className="h-10 w-full animate-pulse rounded-xl bg-gray-200 dark:bg-gray-800" />
       </div>
     </div>
   );

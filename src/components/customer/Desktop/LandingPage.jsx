@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import Reveal from "../../animations/Reveal";
 import { motion } from "framer-motion";
 import ProductCard from "../../home/_ProductCard";
+import { ProductCardSkeleton } from "../../ui/ProductCardSkeleton";
 
 const homeCategories = [
   { name: "Watches", icon: "ri-time-line", count: 45 },
@@ -182,14 +183,8 @@ export default function Home({
   arrivals = fallbackArrivals,
   loading = false,
   error = "",
+  onAddToCart,
 }) {
-  if (loading) {
-    return (
-      <div className="grid min-h-screen place-items-center bg-white text-gray-700 dark:bg-[radial-gradient(circle_at_top,_#1e3a8a_0%,_#111827_35%,_#030712_100%)] dark:text-gray-300">
-        Loading...
-      </div>
-    );
-  }
 
   if (error) {
     return (
@@ -198,10 +193,6 @@ export default function Home({
       </div>
     );
   }
-
-  const handleAddToCart = (p) => {
-    console.log("add to cart", p.id);
-  };
 
   return (
     <div className="min-h-screen bg-white dark:bg-[radial-gradient(circle_at_top,_#1e3a8a_0%,_#111827_30%,_#030712_100%)]">
@@ -282,12 +273,14 @@ export default function Home({
               whileInView="show"
               viewport={{ once: true, amount: 0.2 }}
             >
-              {deals.map((p) => (
+              {loading
+                ? Array.from({ length: 4 }).map((_, i) => <motion.div key={i} variants={item}><ProductCardSkeleton /></motion.div>)
+                : deals.map((p) => (
                 <motion.div key={p.id} variants={item}>
                   <ProductCard
                     product={p}
                     variant="item"
-                    onAddToCart={handleAddToCart}
+                    onAddToCart={onAddToCart}
                   />
                 </motion.div>
               ))}
@@ -317,15 +310,15 @@ export default function Home({
               whileInView="show"
               viewport={{ once: true, amount: 0.2 }}
             >
-              {arrivals.map((p) => (
+              {loading
+                ? Array.from({ length: 6 }).map((_, i) => <motion.div key={i} variants={item}><ProductCardSkeleton /></motion.div>)
+                : arrivals.map((p) => (
                 <motion.div key={p.id} variants={item}>
-                  <Link to={`/product/${p.id}`} className="block">
-                    <ProductCard
-                      product={p}
-                      variant="arrival"
-                      onAddToCart={handleAddToCart}
-                    />
-                  </Link>
+                  <ProductCard
+                    product={p}
+                    variant="arrival"
+                    onAddToCart={onAddToCart}
+                  />
                 </motion.div>
               ))}
             </motion.div>

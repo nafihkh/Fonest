@@ -1,6 +1,6 @@
 import React from "react";
-import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { MobileProfileSkeleton } from "../../ui/ProfileSkeleton";
 import {
   Settings,
   Camera,
@@ -14,8 +14,8 @@ import {
   Info,
   LogOut,
   Moon,
+  UserPen,
 } from "lucide-react";
-import { updateMySettings } from "../../../store/slices/profileSlice";
 
 function SectionTitle({ children }) {
   return (
@@ -107,16 +107,15 @@ export default function MobileProfilePage({
   addresses = [],
   loading,
   error,
+  onSaveSettings,
+  onLogout,
 }) {
-  const dispatch = useDispatch();
   const navigate = useNavigate();
 
   if (loading) {
     return (
       <section className="pb-4">
-        <div className="rounded-3xl bg-white p-6 text-center text-gray-500 shadow-sm dark:bg-gray-900 dark:text-gray-400">
-          Loading profile...
-        </div>
+        <MobileProfileSkeleton />
       </section>
     );
   }
@@ -141,14 +140,9 @@ export default function MobileProfilePage({
 
   const handleThemeToggle = () => {
     const nextTheme = theme === "dark" ? "light" : "dark";
-
-    dispatch(
-      updateMySettings({
-        appearance: {
-          theme: nextTheme,
-        },
-      })
-    );
+    onSaveSettings?.({
+      appearance: { theme: nextTheme },
+    });
   };
 
   return (
@@ -216,7 +210,7 @@ export default function MobileProfilePage({
             icon={ClipboardList}
             title="My Orders"
             rightText={`${activeOrdersCount} Active`}
-            onClick={() => navigate("/orders")}
+            onClick={() => navigate("/purchase-history")}
           />
 
           <div className="border-t border-gray-100 px-4 py-3 dark:border-gray-800">
@@ -231,6 +225,15 @@ export default function MobileProfilePage({
         <SectionTitle>Account & Security</SectionTitle>
 
         <Card>
+          <MenuItem
+            icon={UserPen}
+            title="Edit Profile"
+            subtitle="Update your name and phone"
+            onClick={() => navigate("/profile/edit")}
+          />
+
+          <div className="border-t border-gray-100 dark:border-gray-800" />
+
           <MenuItem
             icon={MapPin}
             title="Saved Addresses"
@@ -287,7 +290,12 @@ export default function MobileProfilePage({
 
       <div className="mb-8">
         <Card>
-          <MenuItem icon={LogOut} title="Log Out" danger />
+          <MenuItem
+            icon={LogOut}
+            title="Log Out"
+            danger
+            onClick={onLogout}
+          />
         </Card>
       </div>
 

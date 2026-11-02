@@ -115,8 +115,62 @@ export default function OrderDetailsMobile({
 
   if (loading && !order) {
     return (
-      <div className="min-h-screen bg-[#f7f8fa] p-4 text-sm text-gray-500 dark:bg-[radial-gradient(circle_at_top,_#1e3a8a_0%,_#111827_35%,_#030712_100%)] dark:text-gray-400">
-        Loading order...
+      <div className="min-h-screen bg-[#f7f8fa] p-4 dark:bg-[radial-gradient(circle_at_top,_#1e3a8a_0%,_#111827_35%,_#030712_100%)] animate-pulse">
+        {/* Header */}
+        <div className="mb-4 flex items-center justify-between">
+          <div className="h-5 w-28 rounded bg-slate-200 dark:bg-slate-700" />
+          <div className="h-4 w-10 rounded bg-slate-200 dark:bg-slate-700" />
+        </div>
+        {/* Title */}
+        <div className="mb-4 h-7 w-40 rounded bg-slate-200 dark:bg-slate-700" />
+        {/* Product card */}
+        <div className="mb-4 rounded-3xl bg-white p-4 shadow-sm dark:border dark:border-gray-800 dark:bg-gray-900">
+          <div className="flex gap-3">
+            <div className="h-20 w-20 rounded-2xl bg-slate-200 dark:bg-slate-700" />
+            <div className="flex-1 space-y-2">
+              <div className="h-3 w-20 rounded bg-slate-200 dark:bg-slate-700" />
+              <div className="h-4 w-full rounded bg-slate-200 dark:bg-slate-700" />
+              <div className="h-4 w-3/4 rounded bg-slate-200 dark:bg-slate-700" />
+              <div className="h-4 w-20 rounded bg-slate-200 dark:bg-slate-700" />
+            </div>
+          </div>
+        </div>
+        {/* Progress */}
+        <div className="mb-4 rounded-3xl bg-white p-4 shadow-sm dark:border dark:border-gray-800 dark:bg-gray-900">
+          <div className="mb-4 h-4 w-32 rounded bg-slate-200 dark:bg-slate-700" />
+          <div className="flex items-center justify-between px-2">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="flex flex-col items-center gap-2">
+                <div className="h-10 w-10 rounded-full bg-slate-200 dark:bg-slate-700" />
+                <div className="h-3 w-12 rounded bg-slate-200 dark:bg-slate-700" />
+              </div>
+            ))}
+          </div>
+        </div>
+        {/* Action buttons */}
+        <div className="mb-4 grid grid-cols-2 gap-3">
+          <div className="h-12 rounded-2xl bg-slate-200 dark:bg-slate-700" />
+          <div className="h-12 rounded-2xl bg-slate-200 dark:bg-slate-700" />
+        </div>
+        <div className="mb-4 grid grid-cols-2 gap-3">
+          <div className="h-12 rounded-2xl bg-slate-200 dark:bg-slate-700" />
+          <div className="h-12 rounded-2xl bg-slate-200 dark:bg-slate-700" />
+        </div>
+        {/* Tracking */}
+        <div className="mb-4 h-24 rounded-3xl bg-slate-200 dark:bg-slate-700" />
+        {/* Info */}
+        <div className="mb-4 rounded-3xl bg-white p-4 shadow-sm dark:border dark:border-gray-800 dark:bg-gray-900 space-y-4">
+          <div className="h-4 w-32 rounded bg-slate-200 dark:bg-slate-700" />
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="flex gap-3">
+              <div className="h-5 w-5 rounded bg-slate-200 dark:bg-slate-700" />
+              <div className="flex-1 space-y-1">
+                <div className="h-3 w-24 rounded bg-slate-200 dark:bg-slate-700" />
+                <div className="h-4 w-full rounded bg-slate-200 dark:bg-slate-700" />
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
@@ -166,8 +220,22 @@ export default function OrderDetailsMobile({
     delivered: 4,
   };
 
+  const returnStepMap = {
+    requested: 1,
+    approved: 1,
+    picked_up: 2,
+    received: 3,
+    refunded: 4,
+  };
+
   const currentStep = stepMap[status] || 1;
   const isCancelled = status === "cancelled";
+  
+  const returnInfo = order.returnInfo;
+  const isReturning = !!returnInfo;
+  const currentReturnStep = isReturning ? (returnStepMap[returnInfo.status] || 1) : 0;
+  const returnStatus = isReturning ? returnInfo.status : null;
+  const isReturnRejected = returnStatus === "rejected";
 
   return (
     <>
@@ -193,7 +261,7 @@ export default function OrderDetailsMobile({
         <div>
           <div className="mb-1 flex items-center justify-between">
             <h2 className="text-[18px] font-bold text-gray-900 dark:text-gray-100">
-              {statusTitle}
+              {isReturning ? (isReturnRejected ? "Return Rejected" : "Return in Progress") : statusTitle}
             </h2>
 
             <button className="text-[11px] font-medium text-blue-500 dark:text-blue-400">
@@ -229,85 +297,164 @@ export default function OrderDetailsMobile({
           </div>
         </div>
 
-        {/* Shipping progress */}
-        <div className="rounded-3xl bg-white p-4 shadow-sm dark:border dark:border-gray-800 dark:bg-gray-900">
-          <div className="mb-4 flex items-center justify-between">
-            <div>
-              <h3 className="text-[13px] font-bold text-gray-900 dark:text-gray-100">
-                Shipping Progress
-              </h3>
+        {/* Progress Card */}
+        {isReturning ? (
+          <div className="rounded-3xl bg-white p-4 shadow-sm dark:border dark:border-gray-800 dark:bg-gray-900">
+            <div className="mb-4 flex items-center justify-between">
+              <div>
+                <h3 className="text-[13px] font-bold text-gray-900 dark:text-gray-100">
+                  Return Progress
+                </h3>
+              </div>
+              <p className="text-[10px] uppercase font-bold text-blue-500 dark:text-blue-400">
+                Ticket: {returnInfo._id?.slice(-6)?.toUpperCase() || "RET"}
+              </p>
             </div>
-            <p className="text-[10px] text-gray-400 dark:text-gray-500">
-              Updated 5 mins ago
-            </p>
+
+            {isReturnRejected ? (
+              <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-center dark:border-red-500/20 dark:bg-red-500/10">
+                <RotateCcw size={24} className="mx-auto mb-2 text-red-500 dark:text-red-400" />
+                <h4 className="text-[14px] font-bold text-red-600 dark:text-red-400">Return Request Rejected</h4>
+                <p className="mt-1 text-[12px] text-red-500/80 dark:text-red-400/80">
+                  {returnInfo.adminNote || "Your return request could not be approved at this time."}
+                </p>
+              </div>
+            ) : (
+              <div className="flex items-start">
+                <StatusStep
+                  icon={RotateCcw}
+                  label="Requested"
+                  completed={currentReturnStep > 1}
+                  active={currentReturnStep === 1}
+                  line={true}
+                />
+
+                <StatusStep
+                  icon={PackageCheck}
+                  label="Picked Up"
+                  completed={currentReturnStep > 2}
+                  active={currentReturnStep === 2}
+                  line={true}
+                />
+
+                <StatusStep
+                  icon={House}
+                  label="Received"
+                  completed={currentReturnStep > 3}
+                  active={currentReturnStep === 3}
+                  line={true}
+                />
+
+                <StatusStep
+                  icon={CreditCard}
+                  label="Refunded"
+                  completed={currentReturnStep === 4}
+                  active={false}
+                  line={false}
+                />
+              </div>
+            )}
+            
+            <div className="mt-4 border-t border-gray-100 pt-3 dark:border-gray-800">
+              <p className="text-[11px] font-semibold text-gray-500 dark:text-gray-400 mb-1">Return Reason</p>
+              <p className="text-[12px] text-gray-700 dark:text-gray-300">
+                {returnInfo.reason || "No reason provided."}
+              </p>
+              {returnInfo.adminNote && !isReturnRejected && (
+                <div className="mt-2 text-[11px] font-medium text-blue-600 dark:text-blue-400">
+                  Note from FONEST: {returnInfo.adminNote}
+                </div>
+              )}
+            </div>
           </div>
+        ) : (
+          <div className="rounded-3xl bg-white p-4 shadow-sm dark:border dark:border-gray-800 dark:bg-gray-900">
+            <div className="mb-4 flex items-center justify-between">
+              <div>
+                <h3 className="text-[13px] font-bold text-gray-900 dark:text-gray-100">
+                  Shipping Progress
+                </h3>
+              </div>
+              <p className="text-[10px] text-gray-400 dark:text-gray-500">
+                Updated 5 mins ago
+              </p>
+            </div>
 
-          <div className="flex items-start">
-            <StatusStep
-              icon={PackageCheck}
-              label="Placed"
-              completed={!isCancelled && currentStep > 1}
-              active={!isCancelled && currentStep === 1}
-              line={true}
-            />
+            <div className="flex items-start">
+              <StatusStep
+                icon={PackageCheck}
+                label="Placed"
+                completed={!isCancelled && currentStep > 1}
+                active={!isCancelled && currentStep === 1}
+                line={true}
+              />
 
-            <StatusStep
-              icon={PackageCheck}
-              label="Packed"
-              completed={!isCancelled && currentStep > 2}
-              active={!isCancelled && currentStep === 2}
-              line={true}
-            />
+              <StatusStep
+                icon={PackageCheck}
+                label="Packed"
+                completed={!isCancelled && currentStep > 2}
+                active={!isCancelled && currentStep === 2}
+                line={true}
+              />
 
-            <StatusStep
-              icon={Truck}
-              label="Shipped"
-              completed={!isCancelled && currentStep > 3}
-              active={!isCancelled && currentStep === 3}
-              line={true}
-            />
+              <StatusStep
+                icon={Truck}
+                label="Shipped"
+                completed={!isCancelled && currentStep > 3}
+                active={!isCancelled && currentStep === 3}
+                line={true}
+              />
 
-            <StatusStep
-              icon={House}
-              label="Delivered"
-              completed={!isCancelled && currentStep === 4}
-              active={false}
-              line={false}
-            />
+              <StatusStep
+                icon={House}
+                label="Delivered"
+                completed={!isCancelled && currentStep === 4}
+                active={false}
+                line={false}
+              />
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Action buttons */}
-        <div className="grid grid-cols-2 gap-3">
-          <button
-            onClick={() =>
-              item?.productId && navigate(`/product/${item.productId}`)
-            }
-            className="rounded-2xl bg-blue-500 py-3 text-[13px] font-semibold text-white transition dark:bg-blue-500 dark:hover:bg-blue-600"
-          >
-            Buy Again
-          </button>
+        {!isReturning && (
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              onClick={() =>
+                item?.productId && navigate(`/product/${item.productId}`)
+              }
+              className="rounded-2xl bg-blue-500 py-3 text-[13px] font-semibold text-white transition dark:bg-blue-500 dark:hover:bg-blue-600"
+            >
+              Buy Again
+            </button>
 
-          <button onClick={() => item?._id && navigate(`/delivery-instructions/${item._id}`)} className="rounded-2xl border border-gray-200 bg-white py-3 text-[13px] font-semibold text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200">
-            Update Instructions
+            <button onClick={() => item?._id && navigate(`/delivery-instructions/${item._id}`)} className="rounded-2xl border border-gray-200 bg-white py-3 text-[13px] font-semibold text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200">
+              Update Instructions
+            </button>
+          </div>
+        )}
+
+        {status === "delivered" && !isReturning && (
+          <button
+            onClick={() => navigate(`/returns/new?orderId=${order._id}`)}
+            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-orange-500 py-3 text-[14px] font-semibold text-white shadow-sm transition hover:bg-orange-600 dark:bg-orange-600 dark:hover:bg-orange-700"
+          >
+            <RotateCcw size={16} />
+            Return / Replace
           </button>
-        </div>
+        )}
 
         {/* Small actions */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1">
           <button className="flex items-center justify-center gap-2 rounded-2xl border border-gray-200 bg-white py-3 text-[12px] font-medium text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200">
             <Share2 size={14} />
-            Share
-          </button>
-
-          <button className="flex items-center justify-center gap-2 rounded-2xl border border-gray-200 bg-white py-3 text-[12px] font-medium text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200">
-            <RotateCcw size={14} />
-            Return
+            Share Order
           </button>
         </div>
 
         {/* Tracking banner */}
-        <div className="rounded-3xl border border-blue-200 bg-blue-50 p-4 shadow-sm dark:border-blue-500/20 dark:bg-blue-500/10">
+        {!isReturning && (
+          <div className="rounded-3xl border border-blue-200 bg-blue-50 p-4 shadow-sm dark:border-blue-500/20 dark:bg-blue-500/10">
           <div className="mb-2 flex items-center justify-between">
             <div>
               <p className="text-[10px] font-bold uppercase tracking-wide text-blue-500 dark:text-blue-400">
@@ -343,6 +490,7 @@ export default function OrderDetailsMobile({
             />
           </div>
         </div>
+        )}
 
         {/* Order Information */}
         <div className="rounded-3xl bg-white p-4 shadow-sm dark:border dark:border-gray-800 dark:bg-gray-900">

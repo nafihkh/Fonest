@@ -2,6 +2,7 @@ import React, { useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import Footer from "../../layout/SiteFooter";
 import Header from "../../layout/SiteHeader";
+import { DesktopProductDetailSkeleton } from "../..//ui/ProductDetailSkeleton";
 
 const products = [
   {
@@ -95,7 +96,17 @@ function ProductCard({ product }) {
 }
 
 export default function ProductDetailsDesktopView({ product, loading, error }) {
-  if (loading && !product) return <div className="p-4">Loading...</div>;
+  if (loading && !product) return (
+    <div className="min-h-screen bg-white dark:bg-gray-950">
+      <Header />
+      <div className="pt-24 pb-20">
+        <div className="max-w-[1400px] mx-auto px-6">
+          <DesktopProductDetailSkeleton />
+        </div>
+      </div>
+      <Footer />
+    </div>
+  );
   if (error && !product) return <div className="p-4 text-red-500">{error}</div>;
   if (!product) return <div className="p-4">Product not found</div>;
 

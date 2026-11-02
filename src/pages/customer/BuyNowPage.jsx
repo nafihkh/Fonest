@@ -179,7 +179,42 @@ addresses.find((addr) => String(addr._id) === String(selectedAddressId)) || null
     };
 
   if (loading && !product) {
-    return <div className="p-4">Loading...</div>;
+    return (
+      <div className="min-h-screen bg-gray-50 p-4 pb-28 animate-pulse">
+        <div className="mb-4 h-7 w-24 rounded bg-slate-200 dark:bg-slate-700" />
+        {/* Product card skeleton */}
+        <div className="mb-4 rounded-2xl bg-white p-4 shadow-sm dark:bg-gray-900">
+          <div className="flex gap-4">
+            <div className="h-24 w-24 rounded-xl bg-slate-200 dark:bg-slate-700" />
+            <div className="flex-1 space-y-2">
+              <div className="h-4 w-full rounded bg-slate-200 dark:bg-slate-700" />
+              <div className="h-4 w-2/3 rounded bg-slate-200 dark:bg-slate-700" />
+              <div className="h-5 w-24 rounded bg-slate-200 dark:bg-slate-700" />
+            </div>
+          </div>
+        </div>
+        {/* Address skeleton */}
+        <div className="mb-4 rounded-2xl bg-white p-4 shadow-sm dark:bg-gray-900 space-y-3">
+          <div className="h-4 w-32 rounded bg-slate-200 dark:bg-slate-700" />
+          <div className="h-16 w-full rounded-xl bg-slate-200 dark:bg-slate-700" />
+          <div className="h-4 w-24 rounded bg-slate-200 dark:bg-slate-700" />
+        </div>
+        {/* Price summary skeleton */}
+        <div className="mb-4 rounded-2xl bg-white p-4 shadow-sm dark:bg-gray-900 space-y-3">
+          <div className="h-4 w-28 rounded bg-slate-200 dark:bg-slate-700" />
+          {[1,2,3].map(i => (
+            <div key={i} className="flex justify-between">
+              <div className="h-4 w-24 rounded bg-slate-200 dark:bg-slate-700" />
+              <div className="h-4 w-16 rounded bg-slate-200 dark:bg-slate-700" />
+            </div>
+          ))}
+        </div>
+        {/* Pay button skeleton */}
+        <div className="fixed bottom-0 left-0 right-0 bg-white p-4 shadow-lg dark:bg-gray-900">
+          <div className="h-14 w-full rounded-2xl bg-slate-200 dark:bg-slate-700" />
+        </div>
+      </div>
+    );
   }
 
   if (error && !product) {
