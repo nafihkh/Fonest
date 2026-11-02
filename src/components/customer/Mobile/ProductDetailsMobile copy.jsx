@@ -327,7 +327,7 @@ export default function MobileProductDetailsPage() {
         </p>
 
         {product.compareAtPrice > 0 && (
-          <p className="mt-1 text-[14px] text-gray-400 line-through dark:text-gray-500">
+          <p className="mt-1 text-[14px] text-gray-400 line-through dark:text-gray-100">
             {formatPrice(product.compareAtPrice)}
           </p>
         )}
