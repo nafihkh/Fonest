@@ -8,8 +8,10 @@ export default function ProtectedRoute({ children, role }) {
   if (!bootstrapped) return null;
 
   if (!accessToken) return <Navigate to="/auth" replace />;
-  console.log(user)
-  if (role && user?.role !== role) return <Navigate to="/home" replace />;
+
+  if (role && user?.role !== role) {
+    return <Navigate to={user?.role === "admin" ? "/admin" : "/home"} replace />;
+  }
 
   return children;
 }

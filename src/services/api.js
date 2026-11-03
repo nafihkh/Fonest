@@ -92,9 +92,9 @@ api.interceptors.response.use(
         processQueue(refreshError, null);
         // If refresh fails (because refresh token is expired/invalid), clear state
         store.dispatch(clearAuth());
-        // Redirect user to login page
-        if (window.location.pathname !== "/login") {
-            window.location.href = "/login";
+        // Redirect user to auth page
+        if (window.location.pathname !== "/auth") {
+            window.location.href = "/auth";
         }
         return Promise.reject(refreshError);
       } finally {
